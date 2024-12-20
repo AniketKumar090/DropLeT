@@ -141,7 +141,7 @@ struct ConsumptionChartView: View {
                     "Water": Color.blue,
                     "Coffee": Color.brown,
                     "Tea": Color.green,
-                    "Soda": Color.purple
+                    "Soda": Color.pink
                 ])
                 .chartXAxis {
                     AxisMarks { value in

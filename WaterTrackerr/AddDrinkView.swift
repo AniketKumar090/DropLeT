@@ -13,7 +13,7 @@ struct AddDrinkView: View {
                  VStack(spacing: 15) {
                     Image(systemName: selectedType.icon)
                         .font(.system(size: 45))
-                        .foregroundColor(.blue)
+                        .foregroundColor(selectedType.color)
                         .opacity(animateContent ? 1 : 0)
                         .scaleEffect(animateContent ? 1 : 0.5)
                     
@@ -26,7 +26,7 @@ struct AddDrinkView: View {
                 .padding(.vertical, 25)
                 .background {
                     RoundedRectangle(cornerRadius: 25)
-                        .fill(.blue.opacity(0.1))
+                        .fill(.indigo.opacity(0.1))
                 }
                 .padding(.horizontal)
                 
@@ -44,13 +44,14 @@ struct AddDrinkView: View {
                                 VStack(spacing: 8) {
                                     Image(systemName: type.icon)
                                         .font(.title2)
+                                        .foregroundColor(type.color)
                                     Text(type.rawValue.capitalized)
                                         .font(.caption)
                                 }
                                 .frame(width: 80, height: 80)
                                 .background {
                                     RoundedRectangle(cornerRadius: 15)
-                                        .fill(selectedType == type ? .blue : .gray.opacity(0.1))
+                                        .fill(selectedType == type ? .indigo : .gray.opacity(0.1))
                                 }
                                 .foregroundColor(selectedType == type ? .white : .primary)
                                 .onTapGesture {
@@ -75,7 +76,7 @@ struct AddDrinkView: View {
                     
                     VStack(spacing: 8) {
                         Slider(value: $selectedAmount, in: 50...1000, step: 50)
-                            .tint(.blue)
+                            .tint(.indigo)
                         
                         HStack {
                             Text("50ml")
@@ -124,7 +125,7 @@ struct AddDrinkView: View {
                             .padding(.vertical, 12)
                             .background {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(.blue)
+                                    .fill(.indigo)
                             }
                             .foregroundColor(.white)
                     }

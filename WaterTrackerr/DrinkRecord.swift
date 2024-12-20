@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
-
+import SwiftUI
+import AppIntents
 @Model
 class DrinkRecord {
     var id: UUID
@@ -29,6 +30,14 @@ enum DrinkType: String, CaseIterable, Codable {
         case .soda: return "bubbles.and.sparkles"
         }
     }
+    var color: Color {
+            switch self {
+            case .water: return Color.blue
+            case .coffee: return Color.brown
+            case .tea: return Color.green
+            case .soda: return Color.pink
+            }
+        }
 }
 struct DefaultDrinks {
     static let sampleDrinks: [DrinkRecord] = [

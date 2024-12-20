@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import WidgetKit
 
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
@@ -9,6 +10,7 @@ struct DashboardView: View {
     @State private var startAnimation: CGFloat = 0
     @State private var animateContent = false
     let recentDrinks: [DrinkRecord]
+    let onQuickAdd: (Double, DrinkType) -> Void
     
     public var todaysDrinks: [DrinkRecord] {
         let today = Calendar.current.startOfDay(for: Date())
@@ -19,16 +21,11 @@ struct DashboardView: View {
             }
             .reversed()
     }
-    
     private func quickAddDrink(_ amount: Double, type: DrinkType) {
-        withAnimation(.spring()) {
-            let drink = DrinkRecord(amount: amount, type: type, isQuickAdd: true)
-            modelContext.insert(drink)
-            try? modelContext.save()
-            todayProgress += amount
+            withAnimation(.spring()) {
+                onQuickAdd(amount, type) // Use the closure instead of direct manipulation
+            }
         }
-    } 
-
     var body: some View {
         NavigationView {
             ScrollView {
@@ -39,7 +36,7 @@ struct DashboardView: View {
                             title: "Goal",
                             value: "\(Int(dailyGoal))ml",
                             icon: "target",
-                            color: .blue
+                            color: .red
                         )
                         
                         StatCard(
@@ -76,7 +73,7 @@ struct DashboardView: View {
                                     Image(systemName: "drop.fill")
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
-                                        .foregroundColor(.blue.opacity(0.1))
+                                        .foregroundColor(.indigo.opacity(0.1))
                                         .scaleEffect(x: 1.1, y: 1)
                                     
                                     WaterWave(
@@ -128,7 +125,7 @@ struct DashboardView: View {
                                 .padding(.vertical, 12)
                                 .background {
                                     RoundedRectangle(cornerRadius: 15)
-                                        .fill(.blue.opacity(0.1))
+                                        .fill(.indigo.opacity(0.1))
                                 }
                             }
                         }
@@ -146,7 +143,7 @@ struct DashboardView: View {
                             .padding(.vertical, 12)
                             .background {
                                 RoundedRectangle(cornerRadius: 15)
-                                    .fill(.blue)
+                                    .fill(.indigo)
                             }
                             .foregroundColor(.white)
                     }
@@ -187,7 +184,7 @@ struct RecentDrink: View{
         VStack(alignment: .center){
             Image(systemName: recentRecords.type.icon)
                 .font(.title2)
-                .foregroundColor(.blue)
+                .foregroundColor(recentRecords.type.color)
                 .frame(width: 40, height: 40)
                 .background {
                     Circle()

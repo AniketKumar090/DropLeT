@@ -6,14 +6,85 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8890EFF32D1588E300A4A06B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8890EFF22D1588E300A4A06B /* WidgetKit.framework */; };
+		8890EFF52D1588E400A4A06B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8890EFF42D1588E300A4A06B /* SwiftUI.framework */; };
+		8890F0002D1588E600A4A06B /* WaTerWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8890EFF02D1588E300A4A06B /* WaTerWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		8890EFFE2D1588E600A4A06B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8890EFC72D15863600A4A06B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8890EFEF2D1588E300A4A06B;
+			remoteInfo = WaTerWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8890F0052D1588E600A4A06B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				8890F0002D1588E600A4A06B /* WaTerWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		8890EFCF2D15863600A4A06B /* WaterTrackerr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WaterTrackerr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8890EFF02D1588E300A4A06B /* WaTerWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WaTerWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		8890EFF22D1588E300A4A06B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		8890EFF42D1588E300A4A06B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		8890F0122D159D2100A4A06B /* WaTerWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WaTerWidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8890F0012D1588E600A4A06B /* Exceptions for "WaTerWidget" folder in "WaTerWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 8890EFEF2D1588E300A4A06B /* WaTerWidgetExtension */;
+		};
+		8890F00F2D158DBF00A4A06B /* Exceptions for "WaterTrackerr" folder in "WaTerWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				DashboardView.swift,
+				DrinkRecord.swift,
+			);
+			target = 8890EFEF2D1588E300A4A06B /* WaTerWidgetExtension */;
+		};
+		8890F0172D15AAA500A4A06B /* Exceptions for "WaTerWidget" folder in "WaterTrackerr" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				DrinkIntents.swift,
+			);
+			target = 8890EFCE2D15863600A4A06B /* WaterTrackerr */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		8890EFD12D15863600A4A06B /* WaterTrackerr */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8890F00F2D158DBF00A4A06B /* Exceptions for "WaterTrackerr" folder in "WaTerWidgetExtension" target */,
+			);
 			path = WaterTrackerr;
+			sourceTree = "<group>";
+		};
+		8890EFF62D1588E400A4A06B /* WaTerWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8890F0172D15AAA500A4A06B /* Exceptions for "WaTerWidget" folder in "WaterTrackerr" target */,
+				8890F0012D1588E600A4A06B /* Exceptions for "WaTerWidget" folder in "WaTerWidgetExtension" target */,
+			);
+			path = WaTerWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -26,13 +97,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8890EFED2D1588E300A4A06B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8890EFF52D1588E400A4A06B /* SwiftUI.framework in Frameworks */,
+				8890EFF32D1588E300A4A06B /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		8890EFC62D15863600A4A06B = {
 			isa = PBXGroup;
 			children = (
+				8890F0122D159D2100A4A06B /* WaTerWidgetExtension.entitlements */,
 				8890EFD12D15863600A4A06B /* WaterTrackerr */,
+				8890EFF62D1588E400A4A06B /* WaTerWidget */,
+				8890EFF12D1588E300A4A06B /* Frameworks */,
 				8890EFD02D15863600A4A06B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,8 +124,18 @@
 			isa = PBXGroup;
 			children = (
 				8890EFCF2D15863600A4A06B /* WaterTrackerr.app */,
+				8890EFF02D1588E300A4A06B /* WaTerWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		8890EFF12D1588E300A4A06B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8890EFF22D1588E300A4A06B /* WidgetKit.framework */,
+				8890EFF42D1588E300A4A06B /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -55,10 +148,12 @@
 				8890EFCB2D15863600A4A06B /* Sources */,
 				8890EFCC2D15863600A4A06B /* Frameworks */,
 				8890EFCD2D15863600A4A06B /* Resources */,
+				8890F0052D1588E600A4A06B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				8890EFFF2D1588E600A4A06B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				8890EFD12D15863600A4A06B /* WaterTrackerr */,
@@ -69,6 +164,28 @@
 			productName = WaterTrackerr;
 			productReference = 8890EFCF2D15863600A4A06B /* WaterTrackerr.app */;
 			productType = "com.apple.product-type.application";
+		};
+		8890EFEF2D1588E300A4A06B /* WaTerWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8890F0022D1588E600A4A06B /* Build configuration list for PBXNativeTarget "WaTerWidgetExtension" */;
+			buildPhases = (
+				8890EFEC2D1588E300A4A06B /* Sources */,
+				8890EFED2D1588E300A4A06B /* Frameworks */,
+				8890EFEE2D1588E300A4A06B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				8890EFF62D1588E400A4A06B /* WaTerWidget */,
+			);
+			name = WaTerWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = WaTerWidgetExtension;
+			productReference = 8890EFF02D1588E300A4A06B /* WaTerWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -81,6 +198,9 @@
 				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					8890EFCE2D15863600A4A06B = {
+						CreatedOnToolsVersion = 16.1;
+					};
+					8890EFEF2D1588E300A4A06B = {
 						CreatedOnToolsVersion = 16.1;
 					};
 				};
@@ -100,12 +220,20 @@
 			projectRoot = "";
 			targets = (
 				8890EFCE2D15863600A4A06B /* WaterTrackerr */,
+				8890EFEF2D1588E300A4A06B /* WaTerWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		8890EFCD2D15863600A4A06B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8890EFEE2D1588E300A4A06B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +250,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8890EFEC2D1588E300A4A06B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8890EFFF2D1588E600A4A06B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8890EFEF2D1588E300A4A06B /* WaTerWidgetExtension */;
+			targetProxy = 8890EFFE2D1588E600A4A06B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		8890EFDD2D15863800A4A06B /* Debug */ = {
@@ -249,6 +392,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WaterTrackerr/WaterTrackerr.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"WaterTrackerr/Preview Content\"";
@@ -278,6 +422,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WaterTrackerr/WaterTrackerr.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"WaterTrackerr/Preview Content\"";
@@ -302,6 +447,62 @@
 			};
 			name = Release;
 		};
+		8890F0032D1588E600A4A06B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = WaTerWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B67LY5435D;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WaTerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WaTerWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Aniket.kumar.WaterTrackerr.WaTerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8890F0042D1588E600A4A06B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = WaTerWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B67LY5435D;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WaTerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WaTerWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Aniket.kumar.WaterTrackerr.WaTerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -319,6 +520,15 @@
 			buildConfigurations = (
 				8890EFE02D15863800A4A06B /* Debug */,
 				8890EFE12D15863800A4A06B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8890F0022D1588E600A4A06B /* Build configuration list for PBXNativeTarget "WaTerWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8890F0032D1588E600A4A06B /* Debug */,
+				8890F0042D1588E600A4A06B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
