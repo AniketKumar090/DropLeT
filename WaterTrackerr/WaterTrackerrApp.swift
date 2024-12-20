@@ -1,18 +1,11 @@
-//
-//  WaterTrackerrApp.swift
-//  WaterTrackerr
-//
-//  Created by Aniket Kumar on 20/12/24.
-//
-
 import SwiftUI
 import SwiftData
 
 @main
-struct WaterTrackerrApp: App {
+struct WaterTrackerApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            DrinkRecord.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

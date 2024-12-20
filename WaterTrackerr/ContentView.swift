@@ -1,61 +1,57 @@
-//
-//  ContentView.swift
-//  WaterTrackerr
-//
-//  Created by Aniket Kumar on 20/12/24.
-//
-
 import SwiftUI
 import SwiftData
 
+
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @Query private var drinkRecords: [DrinkRecord]
+    @State private var dailyGoal: Double = 10000
+    @State private var showingAddDrink = false
+    @State private var todayProgress: Double = 0
+    
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
+        TabView {
+            DashboardView(
+                dailyGoal: $dailyGoal,
+                todayProgress: $todayProgress,
+                showingAddDrink: $showingAddDrink, recentDrinks: drinkRecords
+            )
+            .tabItem {
+                Label("Dashboard", systemImage: "house.fill")
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
+            
+            HistoryView(drinkRecords: drinkRecords)
+                .tabItem {
+                    Label("History", systemImage: "clock.fill")
                 }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
+        }
+        .onAppear {
+            todayProgress = calculateTodayProgress()
+          
+         
+        }
+        
+        .sheet(isPresented: $showingAddDrink) {
+            AddDrinkView { amount, type in
+                let drink = DrinkRecord(amount: amount, type: type, isQuickAdd: false)
+                modelContext.insert(drink)
+                try? modelContext.save()
+                todayProgress = calculateTodayProgress()
+                
+             
             }
-        } detail: {
-            Text("Select an item")
         }
     }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
+    
+  
+    
+    public func calculateTodayProgress() -> Double {
+        let today = Calendar.current.startOfDay(for: Date())
+        let todayDrinks = drinkRecords.filter {
+            Calendar.current.isDate($0.timestamp, inSameDayAs: today)
         }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
+        return todayDrinks.reduce(0) { $0 + $1.amount }
     }
 }
 
-#Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
-}
+
