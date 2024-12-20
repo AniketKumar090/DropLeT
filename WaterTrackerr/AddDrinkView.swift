@@ -39,7 +39,7 @@ struct AddDrinkView: View {
                         .opacity(0.8)
                     
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 15) {
+                        HStack(spacing: 12) {
                             ForEach(DrinkType.allCases, id: \.self) { type in
                                 VStack(spacing: 8) {
                                     Image(systemName: type.icon)

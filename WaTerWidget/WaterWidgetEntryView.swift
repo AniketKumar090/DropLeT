@@ -82,9 +82,9 @@ struct WaTerWidgetEntryView: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 if #available(iOS 17.0, *) {
-                    HStack(alignment: .center, spacing: 8) {
+                    HStack(alignment: .center, spacing: 12) {
                         ForEach(DrinkType.allCases.reversed(), id: \.self) { drinkType in
-                            Button(intent: DrinkAddIntent(drinkType: drinkType, amount: 250)) {
+                            Button(intent: DrinkAddIntent(drinkType: drinkType, amount: 50)) {
                                 VStack {
                                     Image(systemName: drinkType.icon)
                                         .font(.system(size: 14))
@@ -96,7 +96,7 @@ struct WaTerWidgetEntryView: View {
                             }
                             .buttonStyle(.plain)
                         }
-                    }.offset(x: -10)
+                    }.offset(x: -5)
                 }
                 
                 Label("\(hoursFromNow) hours remaining", systemImage: "clock")

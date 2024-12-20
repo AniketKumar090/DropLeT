@@ -98,7 +98,7 @@ struct DashboardView: View {
                                 }
                             }
                         }
-                        .frame(height: 220)
+                        .frame(height: 200)
                     }
                     .padding()
                     .background {
@@ -130,7 +130,7 @@ struct DashboardView: View {
                             }
                         }
                     }
-                    .frame(height: 110)
+                    .frame(height: 100)
                     .padding(.horizontal)
                     .opacity(animateContent ? 1 : 0)
                     

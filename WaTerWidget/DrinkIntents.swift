@@ -2,17 +2,6 @@ import AppIntents
 import SwiftData
 import WidgetKit
 
-extension Notification.Name {
-    static let drinkAdded = Notification.Name("drinkAddedFromWidget")
-}
-@Observable class DrinkStore {
-    static let shared = DrinkStore()
-    var shouldRefresh = false
-    
-    func triggerRefresh() {
-        shouldRefresh.toggle()
-    }
-}
 struct DrinkAddIntent: AppIntent {
     static var title: LocalizedStringResource = "Add Drink"
     
@@ -78,18 +67,12 @@ struct DrinkAddIntent: AppIntent {
         
         let todayDrinks = try context.fetch(descriptor)
         let todayTotal = todayDrinks.reduce(0) { $0 + $1.amount }
-        
+        // Set a flag to indicate this update came from the widget
+        UserDefaults.group.set(true, forKey: "isWidgetUpdate")
+                
         // Update UserDefaults with new total
         UserDefaults.group.set(Int(todayTotal), forKey: UserDefaults.todayWaterAmountKey)
         
-        // Post notification for app update
-        NotificationCenter.default.post(name: .drinkAdded, object: nil)
-        
-        // Trigger refresh in app
-        await MainActor.run {
-            DrinkStore.shared.triggerRefresh()
-        }
-                
         // Refresh widget
         WidgetCenter.shared.reloadAllTimelines()
         
