@@ -2,22 +2,26 @@ import SwiftUI
 import SwiftData
 import WidgetKit
 
+import SwiftUI
+import SwiftData
+import WidgetKit
+
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var drinkRecords: [DrinkRecord]
-    
     @State private var dailyGoal: Double = 10000
     @State private var showingAddDrink = false
     @State private var todayProgress: Double = 0
-    @State private var isSyncing = false  // Add flag to prevent sync loops
+    @State private var isSyncing = false
     @AppStorage(UserDefaults.todayWaterAmountKey, store: UserDefaults.group) private var widgetProgress: Int = 0
-    
+    @StateObject private var pet = ViewModel()
+
     var body: some View {
         TabView {
             DashboardView(
                 dailyGoal: $dailyGoal,
                 todayProgress: $todayProgress,
-                showingAddDrink: $showingAddDrink,
+                showingAddDrink: $showingAddDrink, vm: pet,
                 recentDrinks: drinkRecords,
                 onQuickAdd: { amount, type in
                     addDrink(amount: amount, type: type, isQuickAdd: true)
@@ -37,7 +41,7 @@ struct ContentView: View {
             updateWidget()
         }
         .onChange(of: widgetProgress) { oldValue, newValue in
-            guard !isSyncing else { return }  // Skip if already syncing
+            guard !isSyncing else { return }
             if Double(newValue) != todayProgress {
                 syncWidgetToApp(amount: Double(newValue))
             }
@@ -49,21 +53,20 @@ struct ContentView: View {
         }
     }
 
+    private func updatePetStatus() {
+        pet.giveWater()
+    }
+
     private func syncWidgetToApp(amount: Double) {
         isSyncing = true
-        
-        // Check if this is a widget-originated update
+        updatePetStatus()
         if UserDefaults.group.bool(forKey: UserDefaults.isWidgetUpdateKey) {
-            // Just update the progress without creating a new record
             todayProgress = calculateTodayProgress()
-            // Reset the flag
             UserDefaults.group.set(false, forKey: UserDefaults.isWidgetUpdateKey)
         } else {
-            // Calculate the difference between current progress and widget amount
             let difference = amount - todayProgress
             
             if difference != 0 {
-                // Create a new drink record for the difference
                 let drink = DrinkRecord(
                     amount: difference,
                     type: .water,
@@ -71,24 +74,25 @@ struct ContentView: View {
                 )
                 modelContext.insert(drink)
                 try? modelContext.save()
-                
+                 // Update pet status here
                 todayProgress = calculateTodayProgress()
             }
         }
         
         isSyncing = false
     }
+
     private func addDrink(amount: Double, type: DrinkType, isQuickAdd: Bool) {
-        isSyncing = true  // Set syncing flag
+        isSyncing = true
         
         let drink = DrinkRecord(amount: amount, type: type, isQuickAdd: isQuickAdd)
         modelContext.insert(drink)
         try? modelContext.save()
 
         todayProgress = calculateTodayProgress()
+        updatePetStatus() // Update pet status here
         updateWidget()
-        
-        isSyncing = false  // Reset syncing flag
+        isSyncing = false
     }
 
     private func updateWidget() {
@@ -110,6 +114,7 @@ struct ContentView: View {
         return todayDrinks.reduce(0) { $0 + $1.amount }
     }
 }
+
 extension UserDefaults {
     static let group = UserDefaults(suiteName: "group.Aniket.TDWidget.TaskWidget")!
     static let isWidgetUpdateKey = "isWidgetUpdate"

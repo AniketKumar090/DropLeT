@@ -55,8 +55,16 @@
 		8890F00F2D158DBF00A4A06B /* Exceptions for "WaterTrackerr" folder in "WaTerWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				DashboardView.swift,
-				DrinkRecord.swift,
+				Model/DrinkRecord.swift,
+				Model/PetModel.swift,
+				Utils/HelperViews.swift,
+				ViemModel/PetRepository.swift,
+				ViemModel/ViewModel.swift,
+				Views/AddDrinkView.swift,
+				Views/ContentView.swift,
+				Views/DashboardView.swift,
+				Views/HistoryChartView.swift,
+				Views/HistoryView.swift,
 			);
 			target = 8890EFEF2D1588E300A4A06B /* WaTerWidgetExtension */;
 		};

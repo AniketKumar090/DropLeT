@@ -39,9 +39,9 @@ struct Provider: TimelineProvider {
     }
 
 
-extension UserDefaults {
-    static let group = UserDefaults(suiteName: "group.Aniket.TDWidget.TaskWidget")!
-    
-    static let todayWaterAmountKey = "todayWaterAmount"
-    static let dailyGoalKey = "dailyGoal"
-}
+//extension UserDefaults {
+//    static let group = UserDefaults(suiteName: "group.Aniket.TDWidget.TaskWidget")!
+//    
+//    static let todayWaterAmountKey = "todayWaterAmount"
+//    static let dailyGoalKey = "dailyGoal"
+//}

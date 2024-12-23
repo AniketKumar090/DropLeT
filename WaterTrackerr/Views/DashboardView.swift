@@ -2,6 +2,7 @@ import SwiftUI
 import Charts
 import WidgetKit
 
+
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @Binding var dailyGoal: Double
@@ -9,9 +10,13 @@ struct DashboardView: View {
     @Binding var showingAddDrink: Bool
     @State private var startAnimation: CGFloat = 0
     @State private var animateContent = false
+    @ObservedObject var vm: ViewModel
+    private let timer = Timer.publish(every: 10, on: .main, in: .common).autoconnect()
+        
     let recentDrinks: [DrinkRecord]
     let onQuickAdd: (Double, DrinkType) -> Void
     
+
     public var todaysDrinks: [DrinkRecord] {
         let today = Calendar.current.startOfDay(for: Date())
         return recentDrinks
@@ -22,13 +27,13 @@ struct DashboardView: View {
             .reversed()
     }
     private func quickAddDrink(_ amount: Double, type: DrinkType) {
-            withAnimation(.spring()) {
-                onQuickAdd(amount, type) // Use the closure instead of direct manipulation
-            }
+        withAnimation(.spring()) {
+            vm.giveWater()
+            onQuickAdd(amount, type) // Use the closure instead of direct manipulation
         }
+    }
     var body: some View {
         NavigationView {
-            ScrollView {
                 VStack(spacing: 25) {
               
                     HStack(spacing: 15) {
@@ -57,15 +62,15 @@ struct DashboardView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                         
                         ZStack {
-                            VStack(spacing: 8) {
-                                Text("\(Int((todayProgress/dailyGoal) * 100))%")
-                                    .font(.system(size: 42, weight: .bold))
-                                    .foregroundColor(.white)
-                                Text("of daily goal")
-                                    .font(.subheadline)
-                                    .foregroundColor(.white.opacity(0.8))
-                            }
-                            .zIndex(1)
+//                            VStack(spacing: 8) {
+//                                Text("\(Int((todayProgress/dailyGoal) * 100))%")
+//                                    .font(.system(size: 42, weight: .bold))
+//                                    .foregroundColor(.white)
+//                                Text("of daily goal")
+//                                    .font(.subheadline)
+//                                    .foregroundColor(.white.opacity(0.8))
+//                            }
+//                            .zIndex(1)
                             
                             GeometryReader { proxy in
                                 let size = proxy.size
@@ -89,6 +94,19 @@ struct DashboardView: View {
                                             .aspectRatio(contentMode: .fit)
                                             .padding(.vertical, 15)
                                     }
+                                    WaterWave(
+                                        progress: CGFloat(todayProgress / dailyGoal),
+                                        waveHeight: 0.01,
+                                        offset: startAnimation
+                                    )
+                                    .fill(Color.blue.opacity(0.5))
+                                    .overlay(BubblesOverlay())
+                                    .mask {
+                                        Image(systemName: "drop.fill")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .padding(.vertical, 15)
+                                    }
                                 }
                                 .frame(width: size.width, height: size.height)
                                 .onAppear {
@@ -97,8 +115,29 @@ struct DashboardView: View {
                                     }
                                 }
                             }
+                            VStack {
+                                Spacer()
+                                Image(vm.pet.happinessLevel == "Happy" ? "Happy" : "Sad")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 100, height: 100)
+                                    .transition(.scale.combined(with: .opacity))
+                                    .offset(y:20)
+                                Spacer()
+                                HStack {
+                                    Label("Thirst: \(vm.pet.thirst)",systemImage: "")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Label("Status: \(vm.pet.happinessLevel)",systemImage: "")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
                         }
-                        .frame(height: 200)
+                        .frame(height: 210)
+                        
+                       
                     }
                     .padding()
                     .background {
@@ -133,7 +172,10 @@ struct DashboardView: View {
                     .frame(height: 100)
                     .padding(.horizontal)
                     .opacity(animateContent ? 1 : 0)
-                    
+                    .onReceive(timer){_ in
+                        vm.saveData()
+                    }
+
                 
                     Button(action: { showingAddDrink = true }) {
                         Label("Add Drink", systemImage: "plus.circle.fill")
@@ -150,9 +192,10 @@ struct DashboardView: View {
                     .padding(.horizontal)
                     .opacity(animateContent ? 1 : 0)
                     .offset(y: animateContent ? 0 : 20)
+                    
                 }
                 .padding(.vertical)
-            }
+            
             .navigationTitle("Hydration Tracker")
             .onAppear {
                 withAnimation(.spring(response: 0.8)) {
@@ -178,100 +221,3 @@ extension DashboardView {
     }
 }
 
-struct RecentDrink: View{
-    let recentRecords: DrinkRecord
-    var body: some View {
-        VStack(alignment: .center){
-            Image(systemName: recentRecords.type.icon)
-                .font(.title2)
-                .foregroundColor(recentRecords.type.color)
-                .frame(width: 40, height: 40)
-                .background {
-                    Circle()
-                        .fill(.blue.opacity(0.1))
-                }
-            
-            
-                Text("\(Int(recentRecords.amount)) ml")
-                    .font(.body)
-                    .fontWeight(.medium)
-                
-             
-            
-        }
-    }
-}
-
-struct WaterWave: Shape {
-    var progress: CGFloat
-    var waveHeight: CGFloat
-    var offset: CGFloat
-    
-    var animatableData: CGFloat {
-        get { offset }
-        set { offset = newValue }
-    }
-    
-    func path(in rect: CGRect) -> Path {
-        return Path { path in
-            path.move(to: .zero)
-            
-            let progressHeight: CGFloat = (1 - progress) * rect.height
-            let height = waveHeight * rect.height
-            
-            for value in stride(from: 0, to: rect.width, by: 2) {
-                let x: CGFloat = value
-                let sine: CGFloat = sin(Angle(degrees: value + offset).radians)
-                let y: CGFloat = progressHeight + (height * sine)
-                path.addLine(to: CGPoint(x: x, y: y))
-            }
-            
-            path.addLine(to: CGPoint(x: rect.width, y: rect.height))
-            path.addLine(to: CGPoint(x: 0, y: rect.height))
-        }
-    }
-}
-
-struct StatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                Text(title)
-                    .foregroundColor(.secondary)
-            }
-            .font(.subheadline)
-            
-            Text(value)
-                .font(.title2)
-                .fontWeight(.bold)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(color.opacity(0.1))
-        }
-    }
-}
-
-struct BubblesOverlay: View {
-    var body: some View {
-        ZStack {
-            ForEach(0..<6) { i in
-                Circle()
-                    .fill(.white.opacity(0.1))
-                    .frame(width: [15, 15, 25, 25, 10, 10][i],
-                          height: [15, 15, 25, 25, 10, 10][i])
-                    .offset(x: [-20, 40, -30, 50, 40, -40][i],
-                           y: [0, 30, 80, 70, 100, 50][i])
-            }
-        }
-    }
-}

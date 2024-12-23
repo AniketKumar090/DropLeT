@@ -115,6 +115,7 @@ struct AddDrinkView: View {
                     }
                     
                     Button(action: {
+                     
                         onSave(selectedAmount, selectedType)
                         dismiss()
                     }) {
