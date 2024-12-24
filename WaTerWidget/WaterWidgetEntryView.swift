@@ -54,6 +54,7 @@ struct WaTerWidgetEntryView: View {
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .shadow(radius: 1)
+                    .offset(y: 5)
             }
             
             HStack {
