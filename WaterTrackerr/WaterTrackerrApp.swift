@@ -18,7 +18,7 @@ struct WaterTrackerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Challenge()
         }
         .modelContainer(sharedModelContainer)
     }
