@@ -2,10 +2,6 @@ import SwiftUI
 import SwiftData
 import WidgetKit
 
-import SwiftUI
-import SwiftData
-import WidgetKit
-
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var drinkRecords: [DrinkRecord]

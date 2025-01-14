@@ -20,21 +20,21 @@ class DrinkRecord {
 }
 
 enum DrinkType: String, CaseIterable, Codable {
-    case water, coffee, tea, soda
+    case water, tea, coffee, soda
     
     var icon: String {
         switch self {
         case .water: return "drop.fill"
-        case .coffee: return "cup.and.saucer.fill"
         case .tea: return "leaf.fill"
+        case .coffee: return "cup.and.saucer.fill"
         case .soda: return "bubbles.and.sparkles"
         }
     }
     var color: Color {
             switch self {
             case .water: return Color.blue
-            case .coffee: return Color.brown
             case .tea: return Color.green
+            case .coffee: return Color.orange
             case .soda: return Color.pink
             }
         }
