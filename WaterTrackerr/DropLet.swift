@@ -15,7 +15,6 @@ struct DrinkRecords: Identifiable {
     let drinkType: DrinkType
     let quantity: Int
 }
-
 @Observable class DrinkViewModel: ObservableObject {
     var circles: [CircleData]
     var selectedType: DrinkType = .water
@@ -23,54 +22,58 @@ struct DrinkRecords: Identifiable {
     var drinkRecords: [DrinkRecords] = []
     var goal: Int = 3000
     var chartViewEntry: Bool = false
+    private let queue = DispatchQueue(label: "com.drink.fillCircles", qos: .userInitiated)
     
     init() {
-        self.circles = Array(repeating: CircleData(id: 0, drinkType: nil), count: 50 * 24)
-    }
-    
-    private func addDrinkRecord(drinkType: DrinkType, count: Int) {
-        drinkRecords.append(DrinkRecords(
-            id: UUID(),
-            timestamp: Date(),
-            drinkType: drinkType,
-            quantity: count
-        ))
+        self.circles = Array(0..<(50 * 24)).map { CircleData(id: $0, drinkType: nil) }
     }
     
     func fillCircles(count: Int, with drinkType: DrinkType, volume: Int) {
-        // Dispatch to background queue
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        queue.async { [weak self] in
             guard let self = self else { return }
             
-            // Update goal
-            let newGoal = max(self.goal - volume, 0)
+            // Update goal with safety check
+            let newGoal = max(0, self.goal - volume)
             
-            // Copy circles to avoid direct UI thread modifications
-            var updatedCircles = self.circles
-            var filledCount = 0
+            DispatchQueue.main.async {
+                self.goal = newGoal
+            }
             
-            // Find empty circles and fill them
-            if let firstEmptyIndex = updatedCircles.lastIndex(where: { $0.drinkType == nil }) {
+            if let firstEmptyIndex = self.circles.lastIndex(where: { $0.drinkType == nil }) {
                 for i in 0..<count {
                     let index = firstEmptyIndex - i
                     if index >= 0 {
-                        updatedCircles[index].drinkType = drinkType
-                        filledCount += 1
+                        DispatchQueue.main.async {
+                            self.circles[index].drinkType = drinkType
+                            self.totalDrinks += 1
+                        }
                     }
                 }
-            }
-            
-            // Dispatch UI updates back to main queue
-            DispatchQueue.main.async {
-                self.goal = newGoal
-                self.circles = updatedCircles
-                self.totalDrinks += filledCount
-                self.addDrinkRecord(drinkType: drinkType, count: filledCount)
+                
+                let record = DrinkRecords(
+                    id: UUID(),
+                    timestamp: Date(),
+                    drinkType: drinkType,
+                    quantity: count
+                )
+                
+                DispatchQueue.main.async {
+                    self.drinkRecords.append(record)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.totalDrinks += count
+                    self.drinkRecords.append(DrinkRecords(
+                        id: UUID(),
+                        timestamp: Date(),
+                        drinkType: drinkType,
+                        quantity: count
+                    ))
+                }
             }
         }
     }
 }
-
 struct Challenge: View {
     @StateObject var viewModel = DrinkViewModel()
     let totalCircles = 46.5 * 24.0
@@ -478,14 +481,14 @@ struct ChartView: View {
                         x: .value("Time", record.timestamp),
                         y: .value("Quantity", Double(record.quantity) * 2.675)
                     )
-                    .interpolationMethod(.cardinal)
+                    .interpolationMethod(.monotone)
                     .foregroundStyle(Color.white)
                     
                     AreaMark(
                         x: .value("Time", record.timestamp),
                         y: .value("Quantity", Double(record.quantity) * 2.675)
                     )
-                    .interpolationMethod(.cardinal)
+                    .interpolationMethod(.monotone)
                     .foregroundStyle(
                         LinearGradient(
                             gradient: Gradient(colors: [
