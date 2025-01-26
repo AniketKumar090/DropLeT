@@ -55,7 +55,7 @@
 		8890F00F2D158DBF00A4A06B /* Exceptions for "WaterTrackerr" folder in "WaTerWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Challenge.swift,
+				DropLet.swift,
 				Model/DrinkRecord.swift,
 				Model/PetModel.swift,
 				Utils/HelperViews.swift,
