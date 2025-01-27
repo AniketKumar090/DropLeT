@@ -3,31 +3,89 @@ import Charts
 import Foundation
 
 
-struct CircleData: Identifiable {
+struct CircleData: Identifiable, Codable {
     let id: Int
     var drinkType: DrinkType?
 }
 
 
-struct DrinkRecords: Identifiable {
+struct DrinkRecords: Identifiable, Codable {
     let id: UUID
     let timestamp: Date
     let drinkType: DrinkType
     let quantity: Int
 }
 @Observable class DrinkViewModel: ObservableObject {
-    var circles: [CircleData]
+    var circles: [CircleData] {
+        didSet {
+            saveCircles()
+        }
+    }
     var selectedType: DrinkType = .water
     var totalDrinks: Int = 0
-    var drinkRecords: [DrinkRecords] = []
-    var goal: Int = 3000
+    var drinkRecords: [DrinkRecords] = [] {
+        didSet {
+            saveDrinkRecords()
+        }
+    }
+    var goal: Int = 3000 {
+        didSet {
+            saveGoal()
+        }
+    }
     var chartViewEntry: Bool = false
     private let queue = DispatchQueue(label: "com.drink.fillCircles", qos: .userInitiated)
     
     init() {
-        self.circles = Array(0..<(50 * 24)).map { CircleData(id: $0, drinkType: nil) }
+        self.circles = Self.loadCircles()
+        self.drinkRecords = Self.loadDrinkRecords()
+        self.goal = Self.loadGoal()
+        self.totalDrinks = self.circles.filter { $0.drinkType != nil }.count
     }
     
+    private func saveCircles() {
+        if let encoded = try? JSONEncoder().encode(circles) {
+            UserDefaults.standard.set(encoded, forKey: "circles")
+        }
+    }
+    
+    private static func loadCircles() -> [CircleData] {
+        if let data = UserDefaults.standard.data(forKey: "circles") {
+            if let decoded = try? JSONDecoder().decode([CircleData].self, from: data) {
+                return decoded
+            }
+        }
+
+        return Array(0..<(50 * 24)).map { CircleData(id: $0, drinkType: nil) }
+    }
+    
+    private func saveDrinkRecords() {
+        if let encoded = try? JSONEncoder().encode(drinkRecords) {
+            UserDefaults.standard.set(encoded, forKey: "drinkRecords")
+        }
+    }
+    
+    private static func loadDrinkRecords() -> [DrinkRecords] {
+        if let data = UserDefaults.standard.data(forKey: "drinkRecords") {
+            if let decoded = try? JSONDecoder().decode([DrinkRecords].self, from: data) {
+                return decoded
+            }
+        }
+        
+        return []
+    }
+    
+  
+    private func saveGoal() {
+        UserDefaults.standard.set(goal, forKey: "goal")
+    }
+    
+    private static func loadGoal() -> Int {
+        let goal = UserDefaults.standard.object(forKey: "goal") as? Int ?? 3000
+        return goal
+    }
+    
+   
     func fillCircles(count: Int, with drinkType: DrinkType, volume: Int) {
         queue.async { [weak self] in
             guard let self = self else { return }
