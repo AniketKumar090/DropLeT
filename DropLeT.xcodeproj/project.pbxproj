@@ -37,7 +37,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		8890EFCF2D15863600A4A06B /* DropLeT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DropLeT.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8890EFCF2D15863600A4A06B /* DropleT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DropleT.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8890EFF02D1588E300A4A06B /* WaTerWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WaTerWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		8890EFF22D1588E300A4A06B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		8890EFF42D1588E300A4A06B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -69,12 +69,12 @@
 			);
 			target = 8890EFEF2D1588E300A4A06B /* WaTerWidgetExtension */;
 		};
-		8890F0172D15AAA500A4A06B /* Exceptions for "WaTerWidget" folder in "DropLeT" target */ = {
+		8890F0172D15AAA500A4A06B /* Exceptions for "WaTerWidget" folder in "DropleT" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				DrinkIntents.swift,
 			);
-			target = 8890EFCE2D15863600A4A06B /* DropLeT */;
+			target = 8890EFCE2D15863600A4A06B /* DropleT */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -90,7 +90,7 @@
 		8890EFF62D1588E400A4A06B /* WaTerWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				8890F0172D15AAA500A4A06B /* Exceptions for "WaTerWidget" folder in "DropLeT" target */,
+				8890F0172D15AAA500A4A06B /* Exceptions for "WaTerWidget" folder in "DropleT" target */,
 				8890F0012D1588E600A4A06B /* Exceptions for "WaTerWidget" folder in "WaTerWidgetExtension" target */,
 			);
 			path = WaTerWidget;
@@ -132,7 +132,7 @@
 		8890EFD02D15863600A4A06B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8890EFCF2D15863600A4A06B /* DropLeT.app */,
+				8890EFCF2D15863600A4A06B /* DropleT.app */,
 				8890EFF02D1588E300A4A06B /* WaTerWidgetExtension.appex */,
 			);
 			name = Products;
@@ -150,9 +150,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8890EFCE2D15863600A4A06B /* DropLeT */ = {
+		8890EFCE2D15863600A4A06B /* DropleT */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8890EFDF2D15863800A4A06B /* Build configuration list for PBXNativeTarget "DropLeT" */;
+			buildConfigurationList = 8890EFDF2D15863800A4A06B /* Build configuration list for PBXNativeTarget "DropleT" */;
 			buildPhases = (
 				8890EFCB2D15863600A4A06B /* Sources */,
 				8890EFCC2D15863600A4A06B /* Frameworks */,
@@ -167,11 +167,11 @@
 			fileSystemSynchronizedGroups = (
 				8890EFD12D15863600A4A06B /* WaterTrackerr */,
 			);
-			name = DropLeT;
+			name = DropleT;
 			packageProductDependencies = (
 			);
 			productName = WaterTrackerr;
-			productReference = 8890EFCF2D15863600A4A06B /* DropLeT.app */;
+			productReference = 8890EFCF2D15863600A4A06B /* DropleT.app */;
 			productType = "com.apple.product-type.application";
 		};
 		8890EFEF2D1588E300A4A06B /* WaTerWidgetExtension */ = {
@@ -214,7 +214,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 8890EFCA2D15863600A4A06B /* Build configuration list for PBXProject "DropLeT" */;
+			buildConfigurationList = 8890EFCA2D15863600A4A06B /* Build configuration list for PBXProject "DropleT" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -228,7 +228,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8890EFCE2D15863600A4A06B /* DropLeT */,
+				8890EFCE2D15863600A4A06B /* DropleT */,
 				8890EFEF2D1588E300A4A06B /* WaTerWidgetExtension */,
 			);
 		};
@@ -515,7 +515,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8890EFCA2D15863600A4A06B /* Build configuration list for PBXProject "DropLeT" */ = {
+		8890EFCA2D15863600A4A06B /* Build configuration list for PBXProject "DropleT" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8890EFDD2D15863800A4A06B /* Debug */,
@@ -524,7 +524,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8890EFDF2D15863800A4A06B /* Build configuration list for PBXNativeTarget "DropLeT" */ = {
+		8890EFDF2D15863800A4A06B /* Build configuration list for PBXNativeTarget "DropleT" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8890EFE02D15863800A4A06B /* Debug */,

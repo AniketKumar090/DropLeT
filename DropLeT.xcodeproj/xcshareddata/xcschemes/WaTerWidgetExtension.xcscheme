@@ -19,7 +19,7 @@
                BlueprintIdentifier = "8890EFEF2D1588E300A4A06B"
                BuildableName = "WaTerWidgetExtension.appex"
                BlueprintName = "WaTerWidgetExtension"
-               ReferencedContainer = "container:DropLeT.xcodeproj">
+               ReferencedContainer = "container:DropleT.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -31,9 +31,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "8890EFCE2D15863600A4A06B"
-               BuildableName = "DropLeT.app"
-               BlueprintName = "DropLeT"
-               ReferencedContainer = "container:DropLeT.xcodeproj">
+               BuildableName = "DropleT.app"
+               BlueprintName = "DropleT"
+               ReferencedContainer = "container:DropleT.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -65,16 +65,16 @@
             BlueprintIdentifier = "8890EFEF2D1588E300A4A06B"
             BuildableName = "WaTerWidgetExtension.appex"
             BlueprintName = "WaTerWidgetExtension"
-            ReferencedContainer = "container:DropLeT.xcodeproj">
+            ReferencedContainer = "container:DropleT.xcodeproj">
          </BuildableReference>
       </RemoteRunnable>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8890EFCE2D15863600A4A06B"
-            BuildableName = "DropLeT.app"
-            BlueprintName = "DropLeT"
-            ReferencedContainer = "container:DropLeT.xcodeproj">
+            BuildableName = "DropleT.app"
+            BlueprintName = "DropleT"
+            ReferencedContainer = "container:DropleT.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <EnvironmentVariables>
@@ -108,9 +108,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8890EFCE2D15863600A4A06B"
-            BuildableName = "DropLeT.app"
-            BlueprintName = "DropLeT"
-            ReferencedContainer = "container:DropLeT.xcodeproj">
+            BuildableName = "DropleT.app"
+            BlueprintName = "DropleT"
+            ReferencedContainer = "container:DropleT.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

@@ -3,6 +3,7 @@ import SwiftData
 
 @main
 struct WaterTrackerApp: App {
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             DrinkRecord.self,
@@ -15,7 +16,7 @@ struct WaterTrackerApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-
+    
     var body: some Scene {
         WindowGroup {
             Challenge(viewModel: DrinkViewModel())
@@ -23,5 +24,6 @@ struct WaterTrackerApp: App {
            // NewDesign()
         }
         .modelContainer(sharedModelContainer)
+        
     }
 }
