@@ -25,7 +25,14 @@ enum DrinkType: String, CaseIterable, Codable {
         case .soda: return Color.pink
         }
     }
-    
+    func colorHighlight() -> Color {
+        switch self {
+        case .water: return Color.randomBlue()
+        case .tea: return Color.randomTea()
+        case .coffee: return Color.randomCoffee()
+        case .soda: return Color.randomSoda()
+        }
+    }
 
 }
 
@@ -158,18 +165,35 @@ struct DrinkRecords: Identifiable, Codable, Equatable {
         }
     }
     
+    func reset() {
+            // Reset drink records
+            drinkRecords = []
+            
+            // Reset circles
+            circles = Array(0..<(50 * 24)).map { CircleData(id: $0, drinkType: nil) }
+            
+            // Reset total drinks
+            totalDrinks = 0
+            
+            // Reset goal to default value
+            goal = 3000
+            
+            // Save the changes
+            saveDrinkRecords()
+            saveCircles()
+            saveGoal()
+        }
+    
     
 }
-
-
-
 
 struct Challenge: View {
     @StateObject var viewModel = DrinkViewModel()
     @StateObject private var motionManager = MotionManager()
     @State private var hasShownCongratulations: Bool = false
     let totalCircles = 46.5 * 24.0
-    
+    @State private var waveOffset: Double = 0
+     
     var percentageFilled: Double {
         Double(viewModel.totalDrinks) / Double(totalCircles) * 100
     }
@@ -178,25 +202,47 @@ struct Challenge: View {
         viewModel.goal <= 0 && !hasShownCongratulations && !UserDefaults.standard.bool(forKey: "hasShownCongratulations")
     }
     
+    private var lastDrinkTypeColor: Color {
+        for index in (0..<viewModel.circles.count) {
+            if let drinkType = viewModel.circles[index].drinkType {
+                return drinkType.colorHighlight()
+            }
+        }
+        return Color.randomMetallicGray() // Fallback if no drinks added yet
+    }
+
+    
+    func isCircleColored(row: Int, column: Int, percentageFilled: Double) -> Bool {
+        let totalRows = 50
+        let baselineRow = Double(totalRows) * (1 - percentageFilled / 100)
+        let waveHeight = 2.0 // Adjust this value to change wave height
+        let frequency = 2.0 * .pi / 24.0 // One complete wave across the width
+        let speed = 2.0 // Adjust this to change wave speed
+        
+        let yOffset = waveHeight * sin(frequency * Double(column) + waveOffset * speed)
+        let adjustedBaseline = baselineRow + yOffset
+        
+        return Double(row) >= adjustedBaseline
+    }
+    
     var body: some View {
         NavigationView {
             GeometryReader { geometry in
                 ZStack(alignment: .bottomTrailing) {
                     Color.black.edgesIgnoringSafeArea(.all)
                     
-                    VStack(spacing: 13) {
+                    // Background gray circles
+                    VStack(spacing: 12) {
                         Spacer()
-                        
                         ForEach(0..<50) { row in
-                            HStack(spacing: 13) {
+                            HStack(spacing: 12) {
                                 ForEach(0..<24) { column in
                                     let index = row * 24 + column
-                                    CircleView(
-                                                    circleData: viewModel.circles[index],
-                                                    motionManager: motionManager,
-                                                    row: row,
-                                                    column: column, currentVolume: percentageFilled
-                                                )
+                                    Circle()
+                                        .fill(isCircleColored(row: row, column: column, percentageFilled: percentageFilled)
+                                            ? (viewModel.circles[index].drinkType?.colorHighlight() ?? lastDrinkTypeColor)
+                                            : Color.randomMetallicGray())
+                                    
                                 }
                             }
                             .padding(.horizontal, 8)
@@ -218,38 +264,31 @@ struct Challenge: View {
                             endPoint: .bottom
                         )
                     }
-                    
-                    if showCongratulations {
-                        VStack{
-                            Text("🎉 Congratulations!")
-                                .font(.system(size: 30, weight: .bold))
-                                .foregroundColor(.white)
-                            Text("You have completed your goal!")
-                                .font(.system(size: 20))
-                                .foregroundColor(.white)
-                            
-                        }
-                        .padding()
-                        .background(Color.black.opacity(0.8))
-                        .cornerRadius(15)
-                        .shadow(radius: 10)
-                        .transition(.scale.combined(with: .opacity))
-                        .animation(.spring(), value: showCongratulations)
-                        .position(x: geometry.size.width / 2, y: geometry.size.height * 0.3)
-                        .onAppear{
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    hasShownCongratulations = true
-                                    UserDefaults.standard.set(true, forKey: "hasShownCongratulations")
+                    // Colored circles with straight mask
+                    VStack(spacing: 12) {
+                        Spacer()
+                        ForEach(0..<50) { row in
+                            HStack(spacing: 12) {
+                                ForEach(0..<24) { column in
+                                    let index = row * 24 + column
+                                    if let drinkType = viewModel.circles[index].drinkType,
+                                       isCircleColored(row: row, column: column, percentageFilled: percentageFilled) {
+                                        Circle()
+                                            .fill(drinkType.colorHighlight())
+                                    }else {
+                                        Circle()
+                                            .fill(Color.clear)
+                                    }
                                 }
                             }
+                            .padding(.horizontal, 8)
                         }
                     }
                     
                     VStack {
                         HStack {
                             Spacer()
-                            HStack{
+                            HStack {
                                 Text("  \(Int(percentageFilled))")
                                     .font(.system(size: 60))
                                     .fontWeight(.bold)
@@ -266,6 +305,7 @@ struct Challenge: View {
                         Spacer()
                     }
                     
+                    // Bottom buttons
                     HStack {
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.3)) {
@@ -284,7 +324,16 @@ struct Challenge: View {
                         .padding(30)
                         .padding(.bottom, geometry.safeAreaInsets.bottom - 30)
                         
-                        Spacer()
+                        Button(action: {
+                            viewModel.reset()
+                        }) {
+                            Text("Reset")
+                                .foregroundColor(.white)
+                                .padding(25)
+                                .background(RoundedRectangle(cornerRadius: 24.5)
+                                    .fill(Color(red: 0/255, green: 161/255, blue: 255/255)))
+                                .frame(height: 50)
+                        }
                         
                         NavigationLink(destination: AddCircleView(viewModel: viewModel)
                             .transition(.move(edge: .trailing))
@@ -303,6 +352,33 @@ struct Challenge: View {
                             .padding(.bottom, geometry.safeAreaInsets.bottom - 30)
                     }
                     
+                    // Congratulations overlay
+                    if showCongratulations {
+                        VStack {
+                            Text("🎉 Congratulations!")
+                                .font(.system(size: 30, weight: .bold))
+                                .foregroundColor(.white)
+                            Text("You have completed your goal!")
+                                .font(.system(size: 20))
+                                .foregroundColor(.white)
+                        }
+                        .padding()
+                        .background(Color.black.opacity(0.8))
+                        .cornerRadius(15)
+                        .shadow(radius: 10)
+                        .transition(.scale.combined(with: .opacity))
+                        .animation(.spring(), value: showCongratulations)
+                        .position(x: geometry.size.width / 2, y: geometry.size.height * 0.3)
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    hasShownCongratulations = true
+                                    UserDefaults.standard.set(true, forKey: "hasShownCongratulations")
+                                }
+                            }
+                        }
+                    }
+                    
                     ChartView(viewModel: viewModel, percentageFilled: percentageFilled)
                         .transition(.move(edge: .leading))
                         .animation(.easeInOut(duration: 0.3), value: viewModel.chartViewEntry)
@@ -310,11 +386,25 @@ struct Challenge: View {
                         .frame(width: UIScreen.main.bounds.width)
                 }
                 .ignoresSafeArea()
+                .onAppear {
+                    // Start the wave animation with continuous updates
+                    Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { _ in
+                        withAnimation(.linear(duration: 0.2)) {
+                            waveOffset += 0.1 // Increment the wave offset
+                            if waveOffset >= 2 * .pi { waveOffset = 0 } // Reset if it goes beyond 2π
+                        }
+                    }
+                }
+
+                
             }
+            
         }
         .accentColor(.gray)
+        
         .onAppear {
-            UNUserNotificationCenter.current().requestAuthorization(options: [.alert,.badge, .sound]) { success, error in
+            // Notification setup
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
                 if success {
                     print("All set!")
                 } else if let error {
@@ -350,6 +440,8 @@ struct Challenge: View {
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
     }
 }
+
+
 struct CircleView: View {
     var circleData: CircleData
     @ObservedObject var motionManager: MotionManager
@@ -357,124 +449,25 @@ struct CircleView: View {
     let column: Int
     let currentVolume: Double
     
-    @State private var animationTime: Double = 0
-    private let timer = Timer.publish(every: 0.016, on: .main, in: .common).autoconnect()
-    
-    // Calculate if this circle should be part of the wave effect
-    private var isInWaveZone: Bool {
-        // Only apply the wave effect to circles with a drinkType (filled circles)
-     //   guard circleData.drinkType == nil else { return false }
-        return circleData.drinkType != nil
-//        // Calculate the row where the wave should appear based on current volume percentage
-//        let totalRows = 50 // Total number of rows in the grid
-//        let filledPercentage = currentVolume / 100.0 // Convert percentage to decimal
-//        let filledRows = Int(Double(totalRows) * filledPercentage)
-//        let waveRow = totalRows - filledRows // Wave appears at the top of filled section
-//        
-//        // Create wave effect in a 3-row band around the boundary
-//        return row >= waveRow && row <= (waveRow + 5)
-    }
-    private var isInWaveZonePartTwo: Bool {
-        // Only apply the wave effect to metallic gray circles (no drinkType)
-        guard circleData.drinkType == nil else { return false }
-        
-        // Calculate the row where the wave should appear based on current volume percentage
-        let totalRows = 50 // Total number of rows in the grid
-        let filledPercentage = currentVolume / 100.0 // Convert percentage to decimal
-        let filledRows = Int(Double(totalRows) * filledPercentage)
-        let waveRow = totalRows - filledRows // Wave appears at the top of filled section
-        
-        // Create wave effect in a 3-row band around the boundary
-        return row >= (waveRow - 3) && row <= waveRow
-    }
     var body: some View {
         Circle()
-            .foregroundStyle(getCircleColor())
-            .offset(y: getWaveOffset())
-            .onReceive(timer) { _ in
-                animationTime += 0.05
-            }
+            .overlay(
+                Circle()
+                    .fill(getCircleColor())
+            )
+            .foregroundStyle(circleData.drinkType == nil ? Color.randomMetallicGray() : .clear)
     }
     
     private func getCircleColor() -> Color {
         if let drinkType = circleData.drinkType {
-            return getHighlightColor(drinkType, motionManager.xAcceleration)
+            return drinkType.colorHighlight()
         }
         return Color.randomMetallicGray()
     }
-    
-    private func getWaveOffset() -> CGFloat {
-        guard isInWaveZone else { return 0 }
-        guard isInWaveZonePartTwo else  { return 0 }
-        let amplitude: CGFloat = 12
-        let frequency: Double = 1.0
-        let speed: Double = 2.0
-        
-        // Incorporate motion acceleration into the wave effect
-        let motionFactor = motionManager.xAcceleration * 10.0 // Scale the acceleration for a noticeable effect
-        
-        let horizontalOffset = Double(column) * frequency * 0.3 + motionFactor
-        
-        // Calculate wave intensity based on distance from the boundary (optional)
-        let totalRows = 50
-        let filledPercentage = currentVolume / 100.0
-        let waveRow = Int((1 - filledPercentage) * Double(totalRows))
-        let distanceFromBoundary = abs(Double(row - waveRow))
-        let waveIntensity = 1.0 - (distanceFromBoundary / Double(totalRows)) // Fade effect across all rows
-        
-        let time = animationTime * speed
-        let sineWave = sin(time + horizontalOffset)
-        let cosineWave = cos(time * 0.5 + horizontalOffset) * 0.5
-        
-        return amplitude * (sineWave + cosineWave) * waveIntensity
-    }
-    
-    private func getHighlightColor(_ drinkType: DrinkType, _ xAcceleration: Double) -> Color {
-        let accelerationFactor = xAcceleration * 0.1
-        switch drinkType {
-        case .water:
-            return Color(hue: 0.583 + .random(in: -0.1...0.1) + accelerationFactor, saturation: 0.85, brightness: 0.68)
-        case .tea:
-            return Color(hue: 0.333 + .random(in: -0.1...0.1) + accelerationFactor, saturation: 0.8 + .random(in: -0.1...0.1), brightness: 0.7 + .random(in: -0.1...0.1))
-        case .coffee:
-            return Color(hue: 0.083 + .random(in: -0.1...0.1) + accelerationFactor, saturation: 0.7 + .random(in: -0.1...0.1), brightness: 0.6 + .random(in: -0.1...0.1))
-        case .soda:
-            return Color(hue: 0.95 + .random(in: -0.1...0.1) + accelerationFactor, saturation: 0.75 + .random(in: -0.1...0.1), brightness: 0.9 + .random(in: -0.1...0.1))
-        }
-    }
 }
-struct WaveModifier: ViewModifier {
-    let isActive: Bool
-    let date: Date
-    let column: Int
-    let row: Int
-    
-    func body(content: Content) -> some View {
-        content
-            .offset(y: isActive ? calculateWaveOffset() : 0)
-    }
-    
-    private func calculateWaveOffset() -> CGFloat {
-        let amplitude: CGFloat = 12 // Increased amplitude for more visible effect
-        let frequency: Double = 1.0 // Adjusted for better wave appearance
-        let speed: Double = 2.0 // Animation speed
-        
-        // Create a continuous time value
-        let time = date.timeIntervalSinceReferenceDate * speed
-        
-        // Add phase offset based on column position
-        let horizontalOffset = Double(column) * frequency * 0.3
-        
-        // Add row-based phase offset for more natural look
-        let rowOffset = Double(row) * 0.2
-        
-        // Calculate wave using both sine and cosine for more interesting motion
-        let sineWave = sin(time + horizontalOffset + rowOffset)
-        let cosineWave = cos(time * 0.5 + horizontalOffset) * 0.5
-        
-        return amplitude * (sineWave + cosineWave)
-    }
-}
+
+
+
 @Observable class MotionManager: ObservableObject {
     private let motionManager = CMMotionManager()
     var xAcceleration: Double = 0.0
@@ -715,6 +708,18 @@ extension Color {
             green: baseGray + variation,
             blue: baseGray + variation
         )
+    }
+    static func randomBlue() -> Color{
+        return Color(hue: 0.583 + .random(in: -0.1...0.1) , saturation: 0.85, brightness: 0.68)
+    }
+    static func randomTea() -> Color{
+        return Color(hue: 0.333 + .random(in: -0.1...0.1), saturation: 0.8 + .random(in: -0.1...0.1), brightness: 0.7 + .random(in: -0.1...0.1))
+    }
+    static func randomCoffee() -> Color{
+        return Color(hue: 0.083 + .random(in: -0.1...0.1), saturation: 0.7 + .random(in: -0.1...0.1), brightness: 0.6 + .random(in: -0.1...0.1))
+    }
+    static func randomSoda() -> Color{
+        return Color(hue: 0.95 + .random(in: -0.1...0.1), saturation: 0.75 + .random(in: -0.1...0.1), brightness: 0.9 + .random(in: -0.1...0.1))
     }
     func adjustHue(by offset: CGFloat) -> Color {
         var h: CGFloat = 0.0
