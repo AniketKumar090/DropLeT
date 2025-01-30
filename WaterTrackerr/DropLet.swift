@@ -48,8 +48,10 @@ struct DrinkRecords: Identifiable, Codable, Equatable {
     let drinkType: DrinkType
     let quantity: Int
 }
-
 @Observable class DrinkViewModel: ObservableObject {
+    private let updateQueue = DispatchQueue(label: "com.drink.updates", qos: .userInitiated)
+    private let saveQueue = DispatchQueue(label: "com.drink.saveData", qos: .background)
+        
     var circles: [CircleData] {
         didSet {
             saveCircles()
@@ -65,11 +67,28 @@ struct DrinkRecords: Identifiable, Codable, Equatable {
     }
     var chartViewEntry: Bool = false
     
+    // Goal is constant and should not change
     var goal: Int = 3000 {
         didSet {
-            
             saveGoal()
         }
+    }
+    
+    // New property to track total consumed liquid
+    var consumed: Int = 0 {
+        didSet {
+            saveConsumed()
+        }
+    }
+    
+    // Computed property to calculate percentage filled
+    var percentageFilled: Double {
+        guard goal > 0 else { return 0 } // Avoid division by zero
+        return (Double(consumed) / Double(goal)) * 100
+    }
+    
+    var leftGoal: Int{
+        return max((goal - consumed),0)
     }
     
     private let queue = DispatchQueue(label: "com.drink.fillCircles", qos: .userInitiated)
@@ -78,12 +97,15 @@ struct DrinkRecords: Identifiable, Codable, Equatable {
         self.circles = Self.loadCircles()
         self.drinkRecords = Self.loadDrinkRecords()
         self.goal = Self.loadGoal()
+        self.consumed = Self.loadConsumed() // Load consumed amount
         self.totalDrinks = self.circles.filter { $0.drinkType != nil }.count
     }
     
     private func saveCircles() {
-        if let encoded = try? JSONEncoder().encode(circles) {
-            UserDefaults.standard.set(encoded, forKey: "circles")
+        saveQueue.async {
+            if let encoded = try? JSONEncoder().encode(self.circles) {
+                UserDefaults.standard.set(encoded, forKey: "circles")
+            }
         }
     }
     
@@ -97,8 +119,23 @@ struct DrinkRecords: Identifiable, Codable, Equatable {
     }
     
     private func saveDrinkRecords() {
-        if let encoded = try? JSONEncoder().encode(drinkRecords) {
-            UserDefaults.standard.set(encoded, forKey: "drinkRecords")
+        saveQueue.async {
+            if let encoded = try? JSONEncoder().encode(self.drinkRecords) {
+                UserDefaults.standard.set(encoded, forKey: "drinkRecords")
+            }
+        }
+    }
+       
+    private func saveGoal() {
+        saveQueue.async {
+            UserDefaults.standard.set(self.goal, forKey: "goal")
+        }
+    }
+    
+    // Save consumed amount
+    private func saveConsumed() {
+        saveQueue.async {
+            UserDefaults.standard.set(self.consumed, forKey: "consumed")
         }
     }
     
@@ -111,185 +148,176 @@ struct DrinkRecords: Identifiable, Codable, Equatable {
         return []
     }
     
-    private func saveGoal() {
-        UserDefaults.standard.set(goal, forKey: "goal")
-    }
-    
     private static func loadGoal() -> Int {
         let goal = UserDefaults.standard.object(forKey: "goal") as? Int ?? 3000
         return goal
     }
     
+    // Load consumed amount
+    private static func loadConsumed() -> Int {
+        let consumed = UserDefaults.standard.object(forKey: "consumed") as? Int ?? 0
+        return consumed
+    }
+    
     func fillCircles(count: Int, with drinkType: DrinkType, volume: Int) {
-        queue.async { [weak self] in
+        updateQueue.async { [weak self] in
             guard let self = self else { return }
             
-            let newGoal = max(0, self.goal - volume)
+            var updatedCircles = self.circles
+            var newTotalDrinks = self.totalDrinks
             
-            DispatchQueue.main.async {
-                self.goal = newGoal
-            }
+           
+            let newConsumed = self.consumed + volume
             
-            if let firstEmptyIndex = self.circles.lastIndex(where: { $0.drinkType == nil }) {
-                for i in 0..<count {
+            // Calculate how many circles to fill based on percentage of goal completed
+            let percentageOfGoal = Double(volume) / Double(self.goal)
+            let circlesToFill = Int(Double(self.circles.count) * percentageOfGoal)
+            
+            if let firstEmptyIndex = updatedCircles.lastIndex(where: { $0.drinkType == nil }) {
+                for i in 0..<circlesToFill {
                     let index = firstEmptyIndex - i
                     if index >= 0 {
-                        DispatchQueue.main.async {
-                            self.circles[index].drinkType = drinkType
-                            self.totalDrinks += 1
-                        }
+                        updatedCircles[index].drinkType = drinkType
+                        newTotalDrinks += 1
                     }
                 }
-                
-                let record = DrinkRecords(
-                    id: UUID(),
-                    timestamp: Date(),
-                    drinkType: drinkType,
-                    quantity: count
-                )
-                
-                DispatchQueue.main.async {
-                    self.drinkRecords.append(record)
-                }
-            } else {
-                DispatchQueue.main.async {
-                    self.totalDrinks += count
-                    self.drinkRecords.append(DrinkRecords(
-                        id: UUID(),
-                        timestamp: Date(),
-                        drinkType: drinkType,
-                        quantity: count
-                    ))
-                }
+            }
+            
+            let record = DrinkRecords(
+                id: UUID(),
+                timestamp: Date(),
+                drinkType: drinkType,
+                quantity: volume
+            )
+            
+            DispatchQueue.main.async {
+                self.circles = updatedCircles
+                self.totalDrinks = newTotalDrinks
+                //self.goal = newGoal
+                self.consumed = newConsumed // Update consumed amount
+                self.drinkRecords.append(record)
             }
         }
     }
     
     func reset() {
-            // Reset drink records
-            drinkRecords = []
-            
-            // Reset circles
-            circles = Array(0..<(50 * 24)).map { CircleData(id: $0, drinkType: nil) }
-            
-            // Reset total drinks
-            totalDrinks = 0
-            
-            // Reset goal to default value
-            goal = 3000
-            
-            // Save the changes
-            saveDrinkRecords()
-            saveCircles()
-            saveGoal()
-        }
-    
-    
+        // Reset drink records
+        drinkRecords = []
+        
+        // Reset circles
+        circles = Array(0..<(50 * 24)).map { CircleData(id: $0, drinkType: nil) }
+        
+        // Reset total drinks
+        totalDrinks = 0
+        
+        // Reset goal to default value
+        goal = 3000
+        
+        // Reset consumed amount
+        consumed = 0
+        
+        // Save the changes
+        saveDrinkRecords()
+        saveCircles()
+        saveGoal()
+        saveConsumed()
+    }
 }
 
 struct Challenge: View {
-    @StateObject var viewModel = DrinkViewModel()
-    @StateObject private var motionManager = MotionManager()
+    @StateObject var viewModel: DrinkViewModel
     @State private var hasShownCongratulations: Bool = false
     let totalCircles = 46.5 * 24.0
     @State private var waveOffset: Double = 0
-     
-    var percentageFilled: Double {
-        Double(viewModel.totalDrinks) / Double(totalCircles) * 100
+    @State private var waveTimer: Timer?
+    @State private var isAnimating = true
+    @State private var resetScreen = false
+    @AppStorage("wavesEnabled") private var waveMotion = true
+
+    @State private var staticColors: [[Color]] = Array(repeating: Array(repeating: Color.randomMetallicGray(), count: 24), count: 50)
+    
+    private func startWaveAnimation() {
+        waveTimer?.invalidate()
+        waveTimer = nil
+        
+        guard waveMotion else {
+            // Ensure wave offset is reset when animation is stopped
+            waveOffset = 0
+            return
+        }
+        
+        waveTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
+            if isAnimating {
+                withAnimation(.linear(duration: 0.05)) {
+                    waveOffset += 0.05
+                    if waveOffset >= 2 * .pi {
+                        waveOffset = 0
+                    }
+                }
+            }
+        }
     }
     
+    var brandGradient = Gradient(colors:[Color(.systemPurple), Color(.systemPurple)])
+    
     var showCongratulations: Bool {
-        viewModel.goal <= 0 && !hasShownCongratulations && !UserDefaults.standard.bool(forKey: "hasShownCongratulations")
+        viewModel.goal >= 100 && !hasShownCongratulations && !UserDefaults.standard.bool(forKey: "hasShownCongratulations")
     }
     
     private var lastDrinkTypeColor: Color {
-        for index in (0..<viewModel.circles.count) {
-            if let drinkType = viewModel.circles[index].drinkType {
-                return drinkType.colorHighlight()
-            }
-        }
-        return Color.randomMetallicGray() // Fallback if no drinks added yet
+        viewModel.circles.first { $0.drinkType != nil }?.drinkType?.colorHighlight() ?? Color.randomMetallicGray()
     }
-
     
     func isCircleColored(row: Int, column: Int, percentageFilled: Double) -> Bool {
         let totalRows = 50
+        if !waveMotion {
+            // Static fill without wave effect
+            let baselineRow = Double(totalRows) * (1 - percentageFilled / 100)
+            return Double(row) >= baselineRow
+        }
+        
+        // Wave effect when enabled
         let baselineRow = Double(totalRows) * (1 - percentageFilled / 100)
-        let waveHeight = 2.0 // Adjust this value to change wave height
-        let frequency = 2.0 * .pi / 24.0 // One complete wave across the width
-        let speed = 2.0 // Adjust this to change wave speed
+        let waveHeight = 2.0
+        let frequency = 2.0 * .pi / 24.0
+        let speed = 2.0
         
         let yOffset = waveHeight * sin(frequency * Double(column) + waveOffset * speed)
         let adjustedBaseline = baselineRow + yOffset
-        
+        if percentageFilled >= 100 {
+            return true
+        }
         return Double(row) >= adjustedBaseline
     }
     
     var body: some View {
         NavigationView {
             GeometryReader { geometry in
-                ZStack(alignment: .bottomTrailing) {
+                ZStack(alignment: .center) {
                     Color.black.edgesIgnoringSafeArea(.all)
                     
                     // Background gray circles
-                    VStack(spacing: 12) {
+                    LazyVStack(spacing:2) {
                         Spacer()
-                        ForEach(0..<50) { row in
-                            HStack(spacing: 12) {
-                                ForEach(0..<24) { column in
+                        ForEach(0..<50, id: \.self) { row in
+                            LazyHStack(spacing: 8) {
+                                ForEach(0..<24, id: \.self) { column in
                                     let index = row * 24 + column
                                     Circle()
-                                        .fill(isCircleColored(row: row, column: column, percentageFilled: percentageFilled)
-                                            ? (viewModel.circles[index].drinkType?.colorHighlight() ?? lastDrinkTypeColor)
-                                            : Color.randomMetallicGray())
-                                    
+                                        .fill(isCircleColored(row: row, column: column, percentageFilled: viewModel.percentageFilled)
+                                               ? (viewModel.circles[index].drinkType?.colorHighlight() ?? lastDrinkTypeColor)
+                                               : staticColors[row][column])
                                 }
-                            }
-                            .padding(.horizontal, 8)
+                            }.padding(.horizontal, 8)
                         }
                     }
-                    .overlay {
-                        LinearGradient(
-                            colors: [
-                                Color.black,
-                                Color.black.opacity(0.95),
-                                Color.black.opacity(0.3),
-                                Color.clear,
-                                Color.clear,
-                                Color.clear,
-                                Color.clear,
-                                Color.clear
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    }
-                    // Colored circles with straight mask
-                    VStack(spacing: 12) {
-                        Spacer()
-                        ForEach(0..<50) { row in
-                            HStack(spacing: 12) {
-                                ForEach(0..<24) { column in
-                                    let index = row * 24 + column
-                                    if let drinkType = viewModel.circles[index].drinkType,
-                                       isCircleColored(row: row, column: column, percentageFilled: percentageFilled) {
-                                        Circle()
-                                            .fill(drinkType.colorHighlight())
-                                    }else {
-                                        Circle()
-                                            .fill(Color.clear)
-                                    }
-                                }
-                            }
-                            .padding(.horizontal, 8)
-                        }
-                    }
+                    .frame(width: geometry.size.width, height: geometry.size.height)
                     
                     VStack {
                         HStack {
                             Spacer()
                             HStack {
-                                Text("  \(Int(percentageFilled))")
+                                Text("  \(Int(viewModel.percentageFilled))")
                                     .font(.system(size: 60))
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
@@ -301,55 +329,58 @@ struct Challenge: View {
                             }
                             Spacer()
                         }
-                        .padding(.top, geometry.size.height * 0.05)
+                        .padding(.top, geometry.size.height * 0.08)
                         Spacer()
                     }
                     
                     // Bottom buttons
-                    HStack {
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                viewModel.chartViewEntry.toggle()
-                            }
-                        }) {
-                            Image(systemName: "chart.line.uptrend.xyaxis")
-                                .resizable()
-                                .frame(width: 25, height: 25)
-                                .padding(25)
-                                .foregroundColor(.white)
-                                .background(.black)
-                                .cornerRadius(50)
-                                .shadow(color: .black, radius: 8)
-                        }
-                        .padding(30)
-                        .padding(.bottom, geometry.safeAreaInsets.bottom - 30)
-                        
-                        Button(action: {
-                            viewModel.reset()
-                        }) {
-                            Text("Reset")
-                                .foregroundColor(.white)
-                                .padding(25)
-                                .background(RoundedRectangle(cornerRadius: 24.5)
-                                    .fill(Color(red: 0/255, green: 161/255, blue: 255/255)))
-                                .frame(height: 50)
-                        }
-                        
-                        NavigationLink(destination: AddCircleView(viewModel: viewModel)
-                            .transition(.move(edge: .trailing))
-                            .animation(.easeInOut(duration: 0.3), value: true)
-                            .navigationBarBackButtonHidden(true)) {
-                                Image(systemName: "plus")
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    viewModel.chartViewEntry.toggle()
+                                }
+                            }) {
+                                Image(systemName: "chart.line.uptrend.xyaxis")
                                     .resizable()
                                     .frame(width: 25, height: 25)
                                     .padding(25)
                                     .foregroundColor(.white)
-                                    .background(.black)
+                                    .background(Circle().fill(Color.white.opacity(0.07)))
                                     .cornerRadius(50)
                                     .shadow(color: .black, radius: 8)
                             }
                             .padding(30)
                             .padding(.bottom, geometry.safeAreaInsets.bottom - 30)
+                            Spacer()
+                            Button(action: {
+                                self.resetScreen = true
+                            }) {
+                                Text(" Reset ")
+                                    .foregroundColor(.white)
+                                    .padding(25)
+                                    .overlay(Capsule().stroke(LinearGradient(gradient: brandGradient,
+                                                                             startPoint: .leading, endPoint: .trailing),lineWidth: 5))
+                                    .frame(height: 50)
+                            }
+                            Spacer()
+                            NavigationLink(destination: AddCircleView(viewModel: viewModel)
+                                .transition(.move(edge: .trailing))
+                                .animation(.easeInOut(duration: 0.3), value: true)
+                                .navigationBarBackButtonHidden(true)) {
+                                    Image(systemName: "plus")
+                                        .resizable()
+                                        .frame(width: 25, height: 25)
+                                        .padding(25)
+                                        .foregroundColor(.white)
+                                        .background(Circle().fill(Color.white.opacity(0.07)))
+                                        .cornerRadius(50)
+                                        .shadow(color: .black, radius: 8)
+                                }
+                                .padding(30)
+                                .padding(.bottom, geometry.safeAreaInsets.bottom - 30)
+                        }
                     }
                     
                     // Congratulations overlay
@@ -379,30 +410,23 @@ struct Challenge: View {
                         }
                     }
                     
-                    ChartView(viewModel: viewModel, percentageFilled: percentageFilled)
+                    ChartView(viewModel: viewModel, percentageFilled: viewModel.percentageFilled)
                         .transition(.move(edge: .leading))
                         .animation(.easeInOut(duration: 0.3), value: viewModel.chartViewEntry)
                         .offset(x: viewModel.chartViewEntry ? 0 : -UIScreen.main.bounds.width)
                         .frame(width: UIScreen.main.bounds.width)
                 }
                 .ignoresSafeArea()
-                .onAppear {
-                    // Start the wave animation with continuous updates
-                    Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { _ in
-                        withAnimation(.linear(duration: 0.2)) {
-                            waveOffset += 0.1 // Increment the wave offset
-                            if waveOffset >= 2 * .pi { waveOffset = 0 } // Reset if it goes beyond 2π
-                        }
-                    }
-                }
-
-                
             }
-            
         }
-        .accentColor(.gray)
-        
+        .onChange(of: waveMotion) { newValue in
+            withAnimation(.easeInOut(duration: 0.3)) {
+                startWaveAnimation()
+            }
+        }
         .onAppear {
+            startWaveAnimation()
+            
             // Notification setup
             UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
                 if success {
@@ -413,8 +437,16 @@ struct Challenge: View {
             }
             scheduleNotificationsIfNeeded()
         }
-        .onChange(of: viewModel.goal) {
-            if viewModel.goal <= 0 {
+        .onDisappear {
+            waveTimer?.invalidate()
+            waveTimer = nil
+        }
+        .accentColor(.gray)
+        .fullScreenCover(isPresented: $resetScreen, content: {
+            ResetScreen(viewModel: viewModel)
+        })
+        .onChange(of: viewModel.goal) { newValue in
+            if newValue <= 0 {
                 removeAllNotifications()
             } else {
                 scheduleNotificationsIfNeeded()
@@ -440,11 +472,147 @@ struct Challenge: View {
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
     }
 }
-
-
+struct ResetScreen: View {
+    @Environment(\.dismiss) private var dismiss
+    @State var viewModel: DrinkViewModel
+    @AppStorage("notificationsEnabled") private var notificationsEnabled = true
+    @AppStorage("wavesEnabled") private var waveMotion = true
+    @State private var temporaryGoal: String = ""
+    @State private var showInvalidGoalAlert = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(alignment: .lastTextBaseline) {
+                Text("Settings")
+                    .font(.title)
+                    .foregroundColor(.white)
+                    .padding(.leading)
+                Spacer()
+                Button(action: {
+                    dismiss()
+                } ){
+                    Image(systemName: "x.circle")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .padding()
+                }
+            }
+            
+            // Goal Setting Section
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Daily Goal")
+                    .foregroundColor(.white)
+                    .font(.headline)
+                
+                HStack {
+                    TextField("",text: $temporaryGoal)
+                        .font(.system(size: 18, weight: .bold,design: .monospaced))
+                        .keyboardType(.numberPad)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.black))
+                    
+                    Button("Set") {
+                        if let newGoal = Int(temporaryGoal), newGoal > 0 {
+                            viewModel.goal = newGoal
+                            temporaryGoal = ""
+                            dismiss()
+                        } else {
+                            showInvalidGoalAlert = true
+                        }
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+                }
+                .alert("Invalid Goal", isPresented: $showInvalidGoalAlert) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text("Please enter a valid number greater than 0")
+                }
+                
+                Text("Enter your goal in ml")
+                    .foregroundColor(.gray)
+                    .font(.subheadline)
+            }
+            .padding()
+            .background(Color.white.opacity(0.1))
+            .cornerRadius(15)
+            .padding(.horizontal)
+            
+            // Toggles Section
+            VStack(alignment: .leading, spacing: 15) {
+                Toggle(isOn: $notificationsEnabled) {
+                    HStack {
+                        Image(systemName: "bell.fill")
+                            .foregroundColor(.yellow)
+                        Text("Notifications")
+                            .foregroundColor(.white)
+                    }
+                }
+                .onChange(of: notificationsEnabled) { newValue in
+                    if newValue {
+                        scheduleNotifications()
+                    } else {
+                        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+                    }
+                }
+                
+                Toggle(isOn: $waveMotion) {
+                    HStack {
+                        Image(systemName: "wave.3.right")
+                            .foregroundColor(.blue)
+                        Text("Wave Animation")
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            .padding()
+            .background(Color.white.opacity(0.1))
+            .cornerRadius(15)
+            .padding(.horizontal)
+            
+            Spacer()
+            
+            // Reset Button
+            Button(action: {
+                viewModel.reset()
+                dismiss()
+            }) {
+                Text("Reset all Data")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.red)
+                    .cornerRadius(15)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 40)
+        }
+        .background(Color.black)
+        .onAppear {
+            temporaryGoal = String(viewModel.goal)
+        }
+    }
+    
+    private func scheduleNotifications() {
+        let content = UNMutableNotificationContent()
+        content.title = "Don't Forget to Get Hydrated"
+        content.sound = UNNotificationSound.default
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 60, repeats: true)
+        let request = UNNotificationRequest(identifier: "hydration-reminder", content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request)
+    }
+}
 struct CircleView: View {
     var circleData: CircleData
-    @ObservedObject var motionManager: MotionManager
     let row: Int
     let column: Int
     let currentVolume: Double
@@ -468,33 +636,6 @@ struct CircleView: View {
 
 
 
-@Observable class MotionManager: ObservableObject {
-    private let motionManager = CMMotionManager()
-    var xAcceleration: Double = 0.0
-    
-    init() {
-        startMotionUpdates()
-    }
-    
-    private func startMotionUpdates() {
-        guard motionManager.isAccelerometerAvailable else { return }
-        
-        motionManager.accelerometerUpdateInterval = 1.0 / 60.0 // 60 Hz update rate
-        motionManager.startAccelerometerUpdates(to: .main) { [weak self] data, error in
-            guard let data = data else { return }
-            
-          
-            withAnimation(.easeOut(duration: 0.2)) {
-                self?.xAcceleration = data.acceleration.x * 0.5
-            }
-        }
-    }
-    
-    deinit {
-        motionManager.stopAccelerometerUpdates()
-    }
-}
-
 
 struct AddCircleView: View {
     @Environment(\.dismiss) private var dismiss
@@ -502,8 +643,8 @@ struct AddCircleView: View {
     let totalCircles = 33 * 15
     @State private var selectedType: DrinkType = .water
     @State var viewModel: DrinkViewModel
-    @StateObject private var motionManager = MotionManager()
-   
+    
+    
     private var volumeDisplayView: some View {
         HStack {
             Text("\(Int(volume))")
@@ -531,7 +672,7 @@ struct AddCircleView: View {
                             circleData: CircleData(
                                 id: index,
                                 drinkType: shouldFill ? selectedType : nil
-                            ), motionManager: motionManager, row: row, column: column, currentVolume: volume
+                            ), row: row, column: column, currentVolume: volume
                         )
                     }
                 }
@@ -581,7 +722,7 @@ struct AddCircleView: View {
                     LinearGradient(gradient: Gradient(colors: [selectedType.color, Color.black]),
                                  startPoint: .top,
                                  endPoint: .bottom)
-                        .frame(height: geometry.size.height * 0.95)
+                        .frame(height: geometry.size.height * 0.2)
                         .edgesIgnoringSafeArea(.all)
                     Spacer()
                 }
@@ -599,7 +740,7 @@ struct AddCircleView: View {
                                 InvisibleSlider(percent: $volume)
                                     .frame(width: 100, height: sliderHeight)
                                     .foregroundColor(.black)
-                                    .shadow(color: .black.opacity(0.5), radius: 15, y: 5)
+                                    .shadow(color: .gray, radius: 10, y: 5)
 
                                 circleGridView(height: sliderHeight)
                                     .mask {
@@ -654,7 +795,7 @@ struct AddCircleView: View {
 }
 
 struct InvisibleSlider: View {
-    @Binding var percent: CGFloat // This will now represent the stepped volume (50, 100, 150, ..., 1000)
+    @Binding var percent: CGFloat
     let minVolume: CGFloat = 50
     let maxVolume: CGFloat = 1000
     let step: CGFloat = 50
@@ -783,7 +924,7 @@ struct DrinkPieChartView: View {
                 
                 VStack {
                     HStack(alignment: .lastTextBaseline, spacing: 4) {
-                        Text("\(viewModel.goal)")
+                        Text("\(viewModel.leftGoal)")
                             .font(.system(size: 15, weight: .semibold, design: .monospaced))
                             .foregroundStyle(.white)
                             .padding(.leading, 20)
@@ -954,9 +1095,8 @@ struct TabletView: View {
 }
 
 struct ChartView: View {
-    @State var viewModel: DrinkViewModel
+    @ObservedObject var viewModel: DrinkViewModel
     var percentageFilled: Double
-    @State private var fillPercentage: CGFloat = 0.0
     @State private var selectedTimeframe: Timeframe = .hour
     
     enum Timeframe: String, CaseIterable {
@@ -1043,14 +1183,14 @@ struct ChartView: View {
                 Chart(filteredRecords) { record in
                     LineMark(
                         x: .value("Time", record.timestamp),
-                        y: .value("Quantity", Double(record.quantity) * 2)
+                        y: .value("Quantity", Double(record.quantity))
                     )
                     .interpolationMethod(.stepEnd)
                     .foregroundStyle(Color.gray)
                     
                     AreaMark(
                         x: .value("Time", record.timestamp),
-                        y: .value("Quantity", Double(record.quantity) * 2)
+                        y: .value("Quantity", Double(record.quantity))
                     )
                     .interpolationMethod(.stepEnd)
                     .foregroundStyle(
@@ -1068,7 +1208,7 @@ struct ChartView: View {
                     
                     PointMark(
                         x: .value("Time", record.timestamp),
-                        y: .value("Quantity", Double(record.quantity) * 2)
+                        y: .value("Quantity", Double(record.quantity))
                     )
                     .symbol(.circle)
                     .foregroundStyle(Color.white)
@@ -1116,5 +1256,5 @@ struct ChartView: View {
 
 
 #Preview{
-    Challenge()
+    Challenge(viewModel: DrinkViewModel())
 }

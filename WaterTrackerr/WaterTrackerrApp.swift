@@ -20,8 +20,6 @@ struct WaterTrackerApp: App {
     var body: some Scene {
         WindowGroup {
             Challenge(viewModel: DrinkViewModel())
-          //  ContentView()
-           // NewDesign()
         }
         .modelContainer(sharedModelContainer)
         

@@ -1,6 +1,9 @@
 import SwiftUI
+import CoreMotion
+
 
 struct NewDesign: View {
+    
     @State private var remainingAmount = 821.0
     @State private var percentage = 74
     
@@ -92,8 +95,3 @@ struct NewDesign: View {
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        NewDesign()
-    }
-}
