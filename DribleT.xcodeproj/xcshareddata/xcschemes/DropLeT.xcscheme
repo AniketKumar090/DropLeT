@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "8890EFCE2D15863600A4A06B"
-               BuildableName = "DropleT.app"
-               BlueprintName = "DropleT"
-               ReferencedContainer = "container:DropleT.xcodeproj">
+               BuildableName = "DribleT.app"
+               BlueprintName = "DribleT"
+               ReferencedContainer = "container:DribleT.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8890EFCE2D15863600A4A06B"
-            BuildableName = "DropleT.app"
-            BlueprintName = "DropleT"
-            ReferencedContainer = "container:DropleT.xcodeproj">
+            BuildableName = "DribleT.app"
+            BlueprintName = "DribleT"
+            ReferencedContainer = "container:DribleT.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8890EFCE2D15863600A4A06B"
-            BuildableName = "DropleT.app"
-            BlueprintName = "DropleT"
-            ReferencedContainer = "container:DropleT.xcodeproj">
+            BuildableName = "DribleT.app"
+            BlueprintName = "DribleT"
+            ReferencedContainer = "container:DribleT.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
