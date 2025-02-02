@@ -10,6 +10,8 @@
 		8890EFF32D1588E300A4A06B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8890EFF22D1588E300A4A06B /* WidgetKit.framework */; };
 		8890EFF52D1588E400A4A06B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8890EFF42D1588E300A4A06B /* SwiftUI.framework */; };
 		8890F0002D1588E600A4A06B /* WaTerWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8890EFF02D1588E300A4A06B /* WaTerWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		88B76E562D4D40CD00EE8379 /* SimpleCameraLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 88B76E552D4D40CD00EE8379 /* SimpleCameraLibrary */; };
+		88B76E582D4D415900EE8379 /* SimpleCameraLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 88B76E572D4D415900EE8379 /* SimpleCameraLibrary */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,6 +44,7 @@
 		8890EFF22D1588E300A4A06B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		8890EFF42D1588E300A4A06B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		8890F0122D159D2100A4A06B /* WaTerWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WaTerWidgetExtension.entitlements; sourceTree = "<group>"; };
+		88B76E592D4D48A900EE8379 /* DribleT-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "DribleT-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -103,6 +106,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				88B76E562D4D40CD00EE8379 /* SimpleCameraLibrary in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -110,6 +114,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				88B76E582D4D415900EE8379 /* SimpleCameraLibrary in Frameworks */,
 				8890EFF52D1588E400A4A06B /* SwiftUI.framework in Frameworks */,
 				8890EFF32D1588E300A4A06B /* WidgetKit.framework in Frameworks */,
 			);
@@ -121,6 +126,7 @@
 		8890EFC62D15863600A4A06B = {
 			isa = PBXGroup;
 			children = (
+				88B76E592D4D48A900EE8379 /* DribleT-Info.plist */,
 				8890F0122D159D2100A4A06B /* WaTerWidgetExtension.entitlements */,
 				8890EFD12D15863600A4A06B /* WaterTrackerr */,
 				8890EFF62D1588E400A4A06B /* WaTerWidget */,
@@ -169,6 +175,7 @@
 			);
 			name = DribleT;
 			packageProductDependencies = (
+				88B76E552D4D40CD00EE8379 /* SimpleCameraLibrary */,
 			);
 			productName = WaterTrackerr;
 			productReference = 8890EFCF2D15863600A4A06B /* DribleT.app */;
@@ -191,6 +198,7 @@
 			);
 			name = WaTerWidgetExtension;
 			packageProductDependencies = (
+				88B76E572D4D415900EE8379 /* SimpleCameraLibrary */,
 			);
 			productName = WaTerWidgetExtension;
 			productReference = 8890EFF02D1588E300A4A06B /* WaTerWidgetExtension.appex */;
@@ -223,6 +231,9 @@
 			);
 			mainGroup = 8890EFC62D15863600A4A06B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				88B76E542D4D40A600EE8379 /* XCRemoteSwiftPackageReference "SimpleCameraLibrary" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8890EFD02D15863600A4A06B /* Products */;
 			projectDirPath = "";
@@ -408,6 +419,8 @@
 				DEVELOPMENT_TEAM = B67LY5435D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "DribleT-Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Allow to use Camera?";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -438,6 +451,8 @@
 				DEVELOPMENT_TEAM = B67LY5435D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "DribleT-Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Allow to use Camera?";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -543,6 +558,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		88B76E542D4D40A600EE8379 /* XCRemoteSwiftPackageReference "SimpleCameraLibrary" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AniketKumar090/SimpleCameraLibrary";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		88B76E552D4D40CD00EE8379 /* SimpleCameraLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 88B76E542D4D40A600EE8379 /* XCRemoteSwiftPackageReference "SimpleCameraLibrary" */;
+			productName = SimpleCameraLibrary;
+		};
+		88B76E572D4D415900EE8379 /* SimpleCameraLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 88B76E542D4D40A600EE8379 /* XCRemoteSwiftPackageReference "SimpleCameraLibrary" */;
+			productName = SimpleCameraLibrary;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8890EFC72D15863600A4A06B /* Project object */;
 }

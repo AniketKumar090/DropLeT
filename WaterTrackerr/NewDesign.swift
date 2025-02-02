@@ -3,42 +3,12 @@ import Charts
 import Foundation
 import UserNotifications
 import UserNotificationsUI
+import SimpleCameraLibrary
 
 
 struct DrinkTypeData {
     let type: String
     let amount: Double
-}
-
-enum DrinkType: String, CaseIterable, Codable {
-    case water, tea, coffee, soda
-
-    var icon: String {
-        switch self {
-        case .water: return "drop.fill"
-        case .tea: return "leaf.fill"
-        case .coffee: return "cup.and.saucer.fill"
-        case .soda: return "bubbles.and.sparkles"
-        }
-    }
-
-    var color: Color {
-        switch self {
-        case .water: return Color.blue
-        case .tea: return Color.green
-        case .coffee: return Color.orange
-        case .soda: return Color.pink
-        }
-    }
-    func colorHighlight() -> Color {
-        switch self {
-        case .water: return Color.randomBlue()
-        case .tea: return Color.randomTea()
-        case .coffee: return Color.randomCoffee()
-        case .soda: return Color.randomSoda()
-        }
-    }
-
 }
 
 struct CircleData: Identifiable, Codable, Equatable {
@@ -140,6 +110,35 @@ class NotificationManager: ObservableObject {
     var hasShownCongratulations: Bool = false
     
     private let queue = DispatchQueue(label: "com.drink.fillCircles", qos: .userInitiated)
+
+    var waveOffset: Double = 0 {
+           didSet {
+               if waveOffset >= 2 * .pi {
+                   waveOffset = 0
+               }
+           }
+       }
+       
+       // Add the wave calculation function
+       func isCircleColored(row: Int, column: Int, percentageFilled: Double, totalRows: Int, waveMotion: Bool) -> Bool {
+           if !waveMotion {
+               let baselineRow = Double(totalRows) * (1 - percentageFilled / 100)
+               return Double(row) >= baselineRow
+           }
+           
+           let baselineRow = Double(totalRows) * (1 - percentageFilled / 100)
+           let waveHeight = 2.0
+           let frequency = 2.0 * .pi / 24.0
+           let speed = 2.0
+           
+           let yOffset = waveHeight * sin(frequency * Double(column) + waveOffset * speed)
+           let adjustedBaseline = baselineRow + yOffset
+           
+           if percentageFilled >= 100 {
+               return true
+           }
+           return Double(row) >= adjustedBaseline
+       }
 
     init() {
         self.circles = Self.loadCircles()
@@ -300,6 +299,7 @@ struct NewDesign: View {
     @StateObject var viewModel: DrinkViewModel
     let totalCircles = 23.0 * 15.0
     @State private var waveOffset: Double = 0
+    @State private var volume: CGFloat = 0
     @State private var waveTimer: Timer?
     @State private var isAnimating = true
     @State private var addScreen = false
@@ -310,26 +310,31 @@ struct NewDesign: View {
     // Create an instance of NotificationManager
     @StateObject private var notificationManager = NotificationManager()
     
+    func isCircleColored(row: Int, column: Int, percentageFilled: Double) -> Bool {
+        return viewModel.isCircleColored(row: row,
+                                         column: column,
+                                         percentageFilled: percentageFilled,
+                                         totalRows: 23,
+                                         waveMotion: waveMotion)
+    }
+    
     private func startWaveAnimation() {
-        waveTimer?.invalidate()
-        waveTimer = nil
-        
-        guard waveMotion else {
-            waveOffset = 0
-            return
-        }
-        
-        waveTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
-            if isAnimating {
-                withAnimation(.linear(duration: 0.05)) {
-                    waveOffset += 0.05
-                    if waveOffset >= 2 * .pi {
-                        waveOffset = 0
+            waveTimer?.invalidate()
+            waveTimer = nil
+            
+            guard waveMotion else {
+                viewModel.waveOffset = 0
+                return
+            }
+            
+            waveTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak viewModel] _ in
+                if isAnimating {
+                    withAnimation(.linear(duration: 0.05)) {
+                        viewModel?.waveOffset += 0.05
                     }
                 }
             }
         }
-    }
     
     var brandGradient = Gradient(colors:[Color(.systemPurple), Color(.systemPurple)])
     
@@ -337,25 +342,6 @@ struct NewDesign: View {
         viewModel.circles.first { $0.drinkType != nil }?.drinkType?.colorHighlight() ?? Color.randomMetallicGray()
     }
     
-    func isCircleColored(row: Int, column: Int, percentageFilled: Double) -> Bool {
-        let totalRows = 23
-        if !waveMotion {
-            let baselineRow = Double(totalRows) * (1 - percentageFilled / 100)
-            return Double(row) >= baselineRow
-        }
-        
-        let baselineRow = Double(totalRows) * (1 - percentageFilled / 100)
-        let waveHeight = 2.0
-        let frequency = 2.0 * .pi / 24.0
-        let speed = 2.0
-        
-        let yOffset = waveHeight * sin(frequency * Double(column) + waveOffset * speed)
-        let adjustedBaseline = baselineRow + yOffset
-        if percentageFilled >= 100 {
-            return true
-        }
-        return Double(row) >= adjustedBaseline
-    }
     
     var body: some View {
         NavigationStack {
@@ -465,7 +451,7 @@ struct NewDesign: View {
                     .frame(width: UIScreen.main.bounds.width)
             }
             .fullScreenCover(isPresented: $addScreen) {
-                AddCircleView(viewModel: viewModel)
+                AddCircleView(volume: $volume,viewModel: viewModel)
             }
         }
         .onChange(of: waveMotion) { newValue in
@@ -523,8 +509,10 @@ struct CircleView: View {
             .overlay(
                 Circle()
                     .fill(getCircleColor())
+                    
             )
             .foregroundStyle(circleData.drinkType == nil ? Color.randomMetallicGray() : .clear)
+            .frame(width: 4)
     }
 
     private func getCircleColor() -> Color {
@@ -699,208 +687,6 @@ struct SettingView: View {
             })
     }
 }
-struct InvisibleSlider: View {
-    @Binding var percent: CGFloat
-    let minVolume: CGFloat = 50
-    let maxVolume: CGFloat = 1000
-    let step: CGFloat = 50
-
-    var body: some View {
-        GeometryReader { geo in
-            let dragGesture = DragGesture(minimumDistance: 0)
-                .onChanged { value in
-                    
-                    let rawPercent = 1.0 - Double(value.location.y / geo.size.height)
-                    let rawVolume = rawPercent * (maxVolume - minVolume) + minVolume
-                    let steppedVolume = round(rawVolume / step) * step
-                    let clampedVolume = max(minVolume, min(maxVolume, steppedVolume))
-
-                    self.percent = clampedVolume
-                }
-
-            Capsule()
-                .frame(width: geo.size.width, height: geo.size.height)
-                .gesture(dragGesture)
-        }
-    }
-}
-
-
-struct AddCircleView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var volume: CGFloat = 0  // Changed initial volume to 0
-    let totalCircles = 33 * 15
-    @State private var selectedType: DrinkType? = nil
-    @State var viewModel: DrinkViewModel
-
-    private var currentColor: Color {
-        selectedType?.color ?? .purple
-    }
-
-    private var volumeDisplayView: some View {
-        HStack {
-            Text("\(Int(volume))")
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(.gray)
-
-            Text("ml")
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundColor(.gray)
-                .padding(.top, 5)
-                .offset(x: -10)
-        }
-    }
-
-    private func circleGridView(height: CGFloat) -> some View {
-        VStack {
-            ForEach(0..<33) { row in
-                HStack(spacing: 10) {
-                    ForEach(0..<15) { column in
-                        let index = row * 15 + column
-                        let shouldFill = (totalCircles - index - 1) < Int(volume / 1000 * CGFloat(totalCircles))
-                        CircleView(
-                            circleData: CircleData(
-                                id: index,
-                                drinkType: shouldFill ? selectedType : nil
-                            ), row: row, column: column, currentVolume: volume
-                        )
-                    }
-                }
-                .padding(.horizontal, 8)
-            }
-        }
-    }
-
-    private func drinkTypeButton(type: DrinkType) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: type.icon)
-                .font(.title2)
-                .foregroundColor(type.color)
-            Text(type.rawValue.capitalized)
-                .font(.caption)
-        }
-        .frame(width: 100, height: 50)
-        .background(
-            RoundedRectangle(cornerRadius: 15)
-                .fill(selectedType == type ? .gray.opacity(0.6) : .gray.opacity(0.2))
-        )
-        .foregroundColor(selectedType == type ? .white : .primary)
-        .padding(.trailing, 80)
-        .shadow(color: type.color, radius: 15, y: 5)
-        .onTapGesture {
-            withAnimation(.spring(response: 0.3)) {
-                if selectedType == type {
-                    // Deselect if tapping the same type
-                    selectedType = nil
-                    volume = 0  // Reset volume when deselecting
-                } else {
-                    selectedType = type
-                    if volume == 0 {
-                        volume = 150  // Set default volume when selecting a type
-                    }
-                }
-            }
-        }
-    }
-
-    private func getDynamicHeight(geometry: GeometryProxy) -> CGFloat {
-        let screenHeight = geometry.size.height
-        let maxHeight: CGFloat = 550
-        let minHeight: CGFloat = 250
-        let adjustedHeight = screenHeight * 0.5
-        return max(minHeight, min(adjustedHeight, maxHeight))
-    }
-
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                Color.black.edgesIgnoringSafeArea(.all)
-
-                // Background gradient
-                VStack {
-                    LinearGradient(gradient: Gradient(colors: [currentColor, Color.black]),
-                                 startPoint: .top,
-                                 endPoint: .bottom)
-                        .frame(height: geometry.size.height * 0.2)
-                        .edgesIgnoringSafeArea(.all)
-                    Spacer()
-                }
-
-                // Main content
-                VStack {
-                    HStack {
-                        // Left column - Volume slider and circles
-                        VStack {
-                            volumeDisplayView
-
-                            ZStack {
-                                let sliderHeight = getDynamicHeight(geometry: geometry)
-
-                                InvisibleSlider(percent: $volume)
-                                    .frame(width: 100, height: sliderHeight)
-                                    .foregroundColor(.black)
-                                    .shadow(color: selectedType?.color ?? Color.purple, radius: 8)
-                                    .disabled(selectedType == nil)  // Disable slider when no type selected
-
-                                circleGridView(height: sliderHeight)
-                                    .mask {
-                                        InvisibleSlider(percent: $volume)
-                                            .frame(width: 100, height: sliderHeight)
-                                    }
-                                    .animation(.easeInOut(duration: 0.5), value: volume)
-                            }
-                        }
-
-                        // Right column - Drink types
-                        VStack {
-                            Text("Drinks")
-                                .font(.title)
-                                .fontWeight(.bold)
-                                .foregroundColor(.gray)
-                                .padding(.trailing, 80)
-
-                            ForEach(DrinkType.allCases, id: \.self) { type in
-                                drinkTypeButton(type: type)
-                            }
-                        }
-                    }
-                }
-
-                // Bottom button
-                VStack {
-                    Spacer()
-                    Button(action: {
-                        if selectedType == nil || volume == 0 {
-                            // If no drink is selected or volume is 0, just dismiss the view
-                            dismiss()
-                        } else {
-                            // If a drink is selected and has volume, add the drink and dismiss
-                            let circlesToFill = Int(volume / 1000 * CGFloat(totalCircles))
-                            viewModel.fillCircles(count: circlesToFill,
-                                                  with: selectedType!,
-                                                  volume: Int(volume))
-                            dismiss()
-                        }
-                    }) {
-                        Text("Add Drink")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(currentColor)
-                            .cornerRadius(15)
-                    }
-                    .opacity(selectedType == nil || volume == 0 ? 0.5 : 1)  // Visual feedback for disabled state
-                    .padding(.horizontal)
-                    .padding(.bottom, 40)
-                }
-            }
-        }
-    }
-}
 
 
 extension LinearGradient {
@@ -946,6 +732,432 @@ extension Color {
             return Color(hue: adjustedHue, saturation: Double(s), brightness: Double(b))
         } else {
             return self
+        }
+    }
+}
+extension String {
+    func extractNumericValue() -> Double? {
+        let numbers = self.components(separatedBy: CharacterSet.letters.union(CharacterSet.whitespaces))
+            .joined()
+            .replacingOccurrences(of: ",", with: ".")
+        return Double(numbers)
+    }
+}
+
+enum DrinkType: String, CaseIterable, Codable {
+    case water, tea, coffee, soda
+
+    var icon: String {
+        switch self {
+        case .water: return "drop.fill"
+        case .tea: return "leaf.fill"
+        case .coffee: return "cup.and.saucer.fill"
+        case .soda: return "bubbles.and.sparkles"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .water: return Color.blue
+        case .tea: return Color.green
+        case .coffee: return Color.orange
+        case .soda: return Color.pink
+        }
+    }
+    func colorHighlight() -> Color {
+        switch self {
+        case .water: return Color.randomBlue()
+        case .tea: return Color.randomTea()
+        case .coffee: return Color.randomCoffee()
+        case .soda: return Color.randomSoda()
+        }
+    }
+
+}
+
+extension DrinkType {
+    static func fromKeywords(_ keywords: [String]) -> DrinkType? {
+        let lowercasedKeywords = keywords.map { $0.lowercased() }
+        
+        // Check for soda indicators
+        if lowercasedKeywords.contains("soda") ||
+           lowercasedKeywords.contains("carbonated") ||
+           lowercasedKeywords.contains("cola") {
+            return .soda
+        }
+        
+        // Check for coffee indicators
+        if lowercasedKeywords.contains("coffee") {
+            return .coffee
+        }
+        
+        // Check for tea indicators
+        if lowercasedKeywords.contains("tea") {
+            return .tea
+        }
+        
+        // Check for water indicators
+        if lowercasedKeywords.contains("water") &&
+           !lowercasedKeywords.contains("carbonated") {
+            return .water
+        }
+        
+        return nil
+    }
+}
+struct VolumeDisplayView: View {
+    @AppStorage("wavesEnabled") private var waveMotion = true
+    @Binding var volume: CGFloat
+    @Binding var selectedType: DrinkType?
+    var currentColor: Color
+    var totalCircles: Int
+    @ObservedObject var viewModel: DrinkViewModel
+    @StateObject private var scanner = ProductScannerService()
+    @State private var isShowCamera: Bool = false
+    
+    private var productInfoBinding: Binding<ProductInfo?> {
+        Binding(
+            get: { scanner.productInfo },
+            set: { _ in }
+        )
+    }
+    
+    private func determineDrinkType(from productInfo: ProductInfo) -> DrinkType? {
+        print("Determining drink type for product: \(productInfo.name)")
+            
+            if let keywords = productInfo.keywords {
+                print("Checking keywords: \(keywords)")
+                
+                let lowercasedKeywords = keywords.map { $0.lowercased() }
+                
+                // Check for soda/carbonated drinks first
+                let sodaIndicators = ["soda", "carbonated", "cola", "soft drink"]
+                if lowercasedKeywords.contains(where: { keyword in
+                    sodaIndicators.contains(where: { keyword.contains($0) })
+                }) {
+                    print("Detected as soda from keywords")
+                    return .soda
+                }
+            
+            // Check for coffee
+            if lowercasedKeywords.contains("coffee") {
+                print("Detected as coffee from keywords")
+                return .coffee
+            }
+            
+            // Check for tea
+            if lowercasedKeywords.contains("tea") {
+                print("Detected as tea from keywords")
+                return .tea
+            }
+            
+            // Check for water (only if not carbonated)
+            if lowercasedKeywords.contains("water") &&
+               !lowercasedKeywords.contains("carbonated") {
+                print("Detected as water from keywords")
+                return .water
+            }
+        }
+        
+        // If no type was determined from keywords, check the drink category
+        if let category = productInfo.drinkCategory?.lowercased() {
+            print("Checking drink category: \(category)")
+            return DrinkType.fromKeywords([category])
+        }
+        
+        print("No drink type detected, returning nil")
+        return nil
+    }
+    var scannerVolume: CGFloat {
+        guard let productInfo = scanner.productInfo else {
+            print("No product info available")
+            return 0
+        }
+        
+        print("Raw volume string: \(productInfo.volume)")
+      
+        let volumeStr = productInfo.volume.lowercased()
+        
+        if volumeStr.contains("ml") {
+            return CGFloat(volumeStr.extractNumericValue() ?? 0)
+        } else if volumeStr.contains("cl") {
+            return CGFloat(volumeStr.extractNumericValue() ?? 0) * 10
+        } else if volumeStr.contains("l") {
+            return CGFloat(volumeStr.extractNumericValue() ?? 0) * 1000
+        }
+        
+        return 0
+    }
+    
+    private func isCircleColored(row: Int, column: Int) -> Bool {
+        let percentageFilled = (volume / 1000.0) * 100
+        return viewModel.isCircleColored(row: row,
+                                     column: column,
+                                     percentageFilled: percentageFilled,
+                                     totalRows: 15,
+                                     waveMotion: waveMotion)
+    }
+    
+    var body: some View {
+        VStack {
+            Text("\(Int(volume)) ml")
+                .font(.system(size: 34, weight: .bold, design: .monospaced))
+                .foregroundColor(.white)
+                .padding(.top, 20)
+            
+            ZStack {
+                Circle()
+                    .strokeBorder()
+                    .frame(width: 212, height: 212)
+                
+                Circle()
+                    .stroke(Color.white.opacity(0.2), lineWidth: 10)
+                    .frame(width: 200, height: 200)
+                
+                Circle()
+                    .fill(isShowCamera ? Color.clear : Color.black)
+                    .frame(width: 190, height: 190)
+                
+                ZStack {
+                    if isShowCamera {
+                        BarcodeScannerPreviewView(scannerService: scanner)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 190, height: 190)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white, lineWidth: 2)
+                            )
+                    } else {
+                        LazyVStack(spacing: 8) {
+                            ForEach(0..<15) { row in
+                                LazyHStack {
+                                    ForEach(0..<15, id: \.self) { column in
+                                        let shouldFill = isCircleColored(row: row, column: column)
+                                        CircleView(
+                                            circleData: CircleData(
+                                                id: row * 15 + column,
+                                                drinkType: shouldFill ? selectedType : nil
+                                            ), row: row, column: column, currentVolume: volume)
+                                    }
+                                }
+                            }
+                        }
+                        .frame(width: 180, height: 180)
+                        .clipShape(Circle())
+                    }
+                }
+                .frame(width: 190, height: 190)
+                
+                Circle()
+                    .trim(from: 0, to: volume / 1000)
+                    .stroke(currentColor, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                    .frame(width: 200, height: 200)
+                    .rotationEffect(.degrees(-90))
+                    .animation(.easeInOut, value: volume)
+                
+                Button {
+                    if isShowCamera {
+                        scanner.stopScanning()
+                        scanner.productInfo = nil
+                    } else {
+                        // Clear the cache before starting a new scan
+                       // scanner.clearCache()
+                        scanner.startScanning()
+                    }
+                    withAnimation {
+                        isShowCamera.toggle()
+                    }
+                } label: {
+                    Image(systemName: "barcode.viewfinder")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .foregroundColor(.white)
+                        .frame(width: 35, height: 35)
+                        .background(RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.gray.opacity(0.3)))
+                }
+                .offset(x: 87.5, y: 80)
+            }
+        }
+        .onChange(of: scanner.productInfo) { productInfo in
+            if let productInfo = productInfo {
+                print("Scanner product info received: \(productInfo)")
+                print("Keywords: \(productInfo.keywords ?? [])")
+                
+                withAnimation {
+                    // Directly assign values without using `wrappedValue`
+                    volume = scannerVolume
+                    
+                    // Determine drink type from scanned product
+                    if let detectedType = determineDrinkType(from: productInfo) {
+                        print("Setting detected drink type: \(detectedType)")
+                        selectedType = detectedType
+                    } else {
+                        print("No type detected, using default water type")
+                        selectedType = .water
+                    }
+                    
+                    isShowCamera = false
+                }
+                scanner.stopScanning()
+            }
+        }
+        .onDisappear {
+            scanner.stopScanning()
+        }
+    }
+}
+struct VolumeButtons: View {
+    @Binding var volume: CGFloat
+    var currentColor: Color
+    var onDecrease: () -> Void
+    var onIncrease: () -> Void
+    
+    var body: some View {
+        VStack {
+            HStack(alignment: .center, spacing: 10) {
+                Text("Drink Amount:  ")
+                    .font(.system(size: 22, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(.white)
+                   
+                Button(action: onDecrease) {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(currentColor == .purple ? .gray : .white)
+                        .opacity(currentColor == .purple || volume == 0 ? 0.5 : 1)
+                        
+                }
+                .disabled(currentColor == .purple || volume == 0)
+                Button(action: onIncrease) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(currentColor == .purple ? .gray : .white)
+                        .opacity(currentColor == .purple || volume == 1000 ? 0.5 : 1)
+                }
+                .disabled(currentColor == .purple || volume == 1000)
+            }
+            .padding(.top, 20)
+        }
+    }
+}
+
+struct DrinkTypeButton: View {
+    var type: DrinkType
+    var selectedType: DrinkType?
+    var action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack {
+                Image(systemName: type.icon)
+                    .font(.system(size: 30))
+                    .foregroundColor(selectedType == type ? .white : type.color)
+                    .padding(15)
+                    .background(
+                        Circle()
+                            .fill(selectedType == type ? type.color : Color.white.opacity(0.2))
+                    )
+                    .shadow(color: type.color.opacity(0.5), radius: 10, y: 5)
+                
+                Text(type.rawValue.capitalized)
+                    .font(.caption)
+                    .foregroundColor(.white)
+            }
+        }
+    }
+}
+
+
+struct AddCircleView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var volume: CGFloat
+    let totalCircles = 15 * 15
+    @State private var selectedType: DrinkType? = nil
+    @State var viewModel: DrinkViewModel
+    @State private var waveOffset: Double = 0
+    @AppStorage("wavesEnabled") private var waveMotion = true
+    @State private var staticColors: [[Color]] = Array(repeating: Array(repeating: Color.randomMetallicGray(), count: 15), count: 15)
+    
+    private var currentColor: Color {
+        selectedType?.color ?? .purple
+    }
+
+    var body: some View {
+        ZStack {
+            LinearGradient(gradient: Gradient(colors: [currentColor.opacity(0.8), Color.black]),
+                           startPoint: .top, endPoint: .bottom)
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack {
+                Spacer()
+                
+                VolumeDisplayView(volume: $volume,
+                                selectedType: $selectedType,
+                                currentColor: currentColor,
+                                totalCircles: totalCircles,
+                                viewModel: viewModel)
+                    .padding(.bottom, 40)
+                
+                Spacer()
+                
+                HStack(spacing: 20) {
+                    ForEach(DrinkType.allCases, id: \.self) { type in
+                        DrinkTypeButton(type: type, selectedType: selectedType) {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0.5)) {
+                                if selectedType == type {
+                                    selectedType = nil
+                                    volume = 0
+                                } else {
+                                    selectedType = type
+                                    if volume == 0 {
+                                        volume = 150
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 40)
+                
+                VolumeButtons(volume: $volume, currentColor: currentColor,
+                onDecrease: {
+                    withAnimation {
+                        volume = max(0, volume - 50)
+                    }
+                }, onIncrease: {
+                    withAnimation {
+                        volume = min(1000, volume + 50)
+                    }
+                })
+                
+                Spacer()
+                
+                Button(action: {
+                    if selectedType == nil || volume == 0 {
+                        dismiss()
+                    } else {
+                        let circlesToFill = Int(volume / 1000 * CGFloat(totalCircles))
+                        viewModel.fillCircles(count: circlesToFill,
+                                              with: selectedType!,
+                                              volume: Int(volume))
+                        dismiss()
+                    }
+                }) {
+                    Text(selectedType == nil || volume == 0 ? "Cancel" : "Add Drink")
+                        .font(.system(size: 22, weight: .semibold, design: .monospaced))
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(currentColor)
+                        .cornerRadius(15)
+                }
+                .opacity(selectedType == nil || volume == 0 ? 0.5 : 1)
+                .padding(.horizontal, 40)
+                .padding(.bottom, 20)
+            }
         }
     }
 }
@@ -1313,6 +1525,3 @@ struct ChartView: View {
     }
 }
 
-#Preview {
-    NewDesign(viewModel: DrinkViewModel())
-}
