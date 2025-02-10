@@ -58,9 +58,9 @@
 		8890F00F2D158DBF00A4A06B /* Exceptions for "WaterTrackerr" folder in "WaTerWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Home.swift,
 				Model/DrinkRecord.swift,
 				Model/PetModel.swift,
-				NewDesign.swift,
 				Utils/HelperViews.swift,
 				ViemModel/PetRepository.swift,
 				ViemModel/ViewModel.swift,
@@ -420,7 +420,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "DribleT-Info.plist";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Allow to use Camera?";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Please allow us to use Camera";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -452,7 +452,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "DribleT-Info.plist";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Allow to use Camera?";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Please allow us to use Camera";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

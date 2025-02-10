@@ -20,5 +20,93 @@
             landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D8106ACE-4C0B-4BF9-A5ED-0A7873F29FD7"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../../../var/folders/v_/zxbs0w0s6pn5yl7z_b814ww00000gn/T/swift-generated-sources/@__swiftmacro_7DribleT14DrinkViewModelC14unitPreference18ObservationTrackedfMp_.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1"
+            endingLineNumber = "1"
+            landmarkName = "unknown"
+            landmarkType = "0">
+            <Locations>
+               <Location
+                  uuid = "D8106ACE-4C0B-4BF9-A5ED-0A7873F29FD7 - 2d7afc81b626da0d"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DribleT.DrinkViewModel._unitPreference.modify : Swift.String with unmangled suffix &quot;.resume.0&quot;"
+                  moduleName = "DribleT.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///%3Ccompiler-generated%3E"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0">
+               </Location>
+               <Location
+                  uuid = "D8106ACE-4C0B-4BF9-A5ED-0A7873F29FD7 - 161df2df07fc4cdd"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DribleT.DrinkViewModel._unitPreference.getter : Swift.String"
+                  moduleName = "DribleT.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///var/folders/v_/zxbs0w0s6pn5yl7z_b814ww00000gn/T/-4816a1.@__swiftmacro_7DribleT14DrinkViewModelC14unitPreference18ObservationTrackedfMp_.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0">
+               </Location>
+               <Location
+                  uuid = "D8106ACE-4C0B-4BF9-A5ED-0A7873F29FD7 - 2eff40c94ecb5ca8"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DribleT.DrinkViewModel._unitPreference.setter : Swift.String"
+                  moduleName = "DribleT.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///var/folders/v_/zxbs0w0s6pn5yl7z_b814ww00000gn/T/-4816a1.@__swiftmacro_7DribleT14DrinkViewModelC14unitPreference18ObservationTrackedfMp_.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "1"
+                  endingLineNumber = "1">
+               </Location>
+               <Location
+                  uuid = "D8106ACE-4C0B-4BF9-A5ED-0A7873F29FD7 - ff80ce30d9e3b8bb"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DribleT.DrinkViewModel._unitPreference.modify : Swift.String"
+                  moduleName = "DribleT.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///var/folders/v_/zxbs0w0s6pn5yl7z_b814ww00000gn/T/-4816a1.@__swiftmacro_7DribleT14DrinkViewModelC14unitPreference18ObservationTrackedfMp_.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "1"
+                  endingLineNumber = "1">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "4385D49F-F204-4918-A949-62378AA77876"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../../../var/folders/v_/zxbs0w0s6pn5yl7z_b814ww00000gn/T/swift-generated-sources/@__swiftmacro_20WaTerWidgetExtension14DrinkViewModelC9useOunces18ObservationTrackedfMp_.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1"
+            endingLineNumber = "1">
+         </BreakpointContent>
+      </BreakpointProxy>
    </Breakpoints>
 </Bucket>

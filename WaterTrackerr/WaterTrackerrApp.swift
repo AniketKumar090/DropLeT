@@ -3,7 +3,7 @@ import SwiftData
 
 @main
 struct WaterTrackerApp: App {
-    
+    @StateObject private var productStore = ProductStore()
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             DrinkRecord.self,
@@ -19,7 +19,7 @@ struct WaterTrackerApp: App {
     
     var body: some Scene {
         WindowGroup {
-           NewDesign(viewModel: DrinkViewModel())
+           Home(viewModel: DrinkViewModel()).environmentObject(productStore)
         }
         .modelContainer(sharedModelContainer)
         
