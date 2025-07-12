@@ -77,50 +77,48 @@ struct DrinkLogSheet: View {
                         ScrollView {
                             LazyVStack(alignment: .leading, spacing: 24) {
                                 ForEach(groupedRecords, id: \.0) { date, records in
-                                    VStack(alignment: .leading, spacing: 16) {
-                                        ForEach(records) { record in
-                                            HStack {
-                                                if let quickSelection = findQuickSelection(for: record.quantity) {
-                                                    Image(systemName: quickSelection.icon)
-                                                        .font(.system(size: 18))
-                                                        .foregroundColor(.white)
-                                                        .frame(width: 40, height: 40)
-                                                } else {
-                                                    Image(systemName: record.drinkType.icon)
-                                                        .font(.system(size: 18))
-                                                        .foregroundColor(.white)
-                                                        .frame(width: 40, height: 40)
-                                                }
-                                                
-                                                HStack(alignment: .lastTextBaseline) {
-                                                    Text(viewModel.useOunces ? String(format: "%.1f", viewModel.mlToOz(Double(record.quantity))) : "\(record.quantity)")
-                                                        .font(.system(size: 16, weight: .semibold, design: .monospaced))
-                                                        .foregroundColor(.white)
-
-                                                    Text(viewModel.useOunces ? "oz" : "ml")
-                                                        .font(.system(size: 14, weight: .medium, design: .monospaced))
-                                                        .foregroundColor(.white)
-
-                                                    Spacer()
-                                                    Text(formatDate(record.timestamp))
-                                                        .font(.system(size: 12, design: .monospaced))
-                                                        .foregroundColor(.gray)
-                                                }
+                                    ForEach(records) { record in
+                                        HStack {
+                                            if let quickSelection = findQuickSelection(for: record.quantity) {
+                                                Image(systemName: quickSelection.icon)
+                                                    .font(.system(size: 18))
+                                                    .foregroundColor(.white)
+                                                    .frame(width: 40, height: 40)
+                                            } else {
+                                                Image(systemName: record.drinkType.icon)
+                                                    .font(.system(size: 18))
+                                                    .foregroundColor(.white)
+                                                    .frame(width: 40, height: 40)
                                             }
-                                            .padding(.vertical, 4)
-                                            .padding(.horizontal)
-                                            .background(Color.white.opacity(0.05))
-                                            .cornerRadius(12)
-                                            .padding(.horizontal)
-                                            .scaleEffect(visibleRecords.contains(record.id) ? 1.0 : 0.8)
-                                            .opacity(visibleRecords.contains(record.id) ? 1.0 : 0.5)
-                                            .onScrollVisibilityChange { isVisible in
-                                                withAnimation(.easeInOut(duration: 0.2)) {
-                                                    if isVisible {
-                                                        visibleRecords.insert(record.id)
-                                                    } else {
-                                                        visibleRecords.remove(record.id)
-                                                    }
+                                            
+                                            HStack(alignment: .lastTextBaseline) {
+                                                Text(viewModel.useOunces ? String(format: "%.1f", viewModel.mlToOz(Double(record.quantity))) : "\(record.quantity)")
+                                                    .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                                                    .foregroundColor(.white)
+
+                                                Text(viewModel.useOunces ? "oz" : "ml")
+                                                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+                                                    .foregroundColor(.white)
+
+                                                Spacer()
+                                                Text(formatDate(record.timestamp))
+                                                    .font(.system(size: 12, design: .monospaced))
+                                                    .foregroundColor(.gray)
+                                            }
+                                        }
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal)
+                                        .background(Color.white.opacity(0.05))
+                                        .cornerRadius(12)
+                                        .padding(.horizontal)
+                                        .scaleEffect(visibleRecords.contains(record.id) ? 1.0 : 0.8)
+                                        .opacity(visibleRecords.contains(record.id) ? 1.0 : 0.5)
+                                        .onScrollVisibilityChange { isVisible in
+                                            withAnimation(.easeInOut(duration: 0.2)) {
+                                                if isVisible {
+                                                    visibleRecords.insert(record.id)
+                                                } else {
+                                                    visibleRecords.remove(record.id)
                                                 }
                                             }
                                         }

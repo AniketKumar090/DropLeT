@@ -12,7 +12,7 @@ class NotificationManager: ObservableObject {
         
         // Define the notification times and messages
         let notificationTimes = [
-            (hour: 7, minute: 0, message: "Drink your first glass of water after waking up!"),
+            (hour: 7, minute: 30, message: "Drink your first glass of water after waking up!"),
             (hour: 9, minute: 0, message: "It’s time for your second glass of water! Start your work day refreshed."),
             (hour: 11, minute: 30, message: "Have a glass of water 30 minutes before lunch."),
             (hour: 13, minute: 30, message: "Drink a glass of water an hour after lunch to aid digestion."),

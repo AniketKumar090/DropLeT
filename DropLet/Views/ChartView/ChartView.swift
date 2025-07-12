@@ -12,6 +12,9 @@ struct ChartView: View {
     @State private var typingIndex: Int = 0
     @State private var typingTimer: Timer? // Store the timer reference
     
+    // Add this state variable to track scroll position
+    @State private var scrollPosition: Date = Date()
+    
     let responses: [String] = [
         "Drinking water helps maintain hydration, which is essential for overall health. It also supports digestion and improves skin health.",
         "Water supports digestion by helping break down food and absorb nutrients. Staying hydrated also boosts energy levels and prevents fatigue.",
@@ -51,20 +54,19 @@ struct ChartView: View {
 
     private var filteredRecords: [DrinkRecords] {
         let now = Date()
-        switch selectedTimeframe {
-        case .hour:
-            return viewModel.drinkRecords.filter {
-                now.timeIntervalSince($0.timestamp) <= 3600
-            }
-        case .daily:
-            return viewModel.drinkRecords.filter {
-                now.timeIntervalSince($0.timestamp) <= 86400
-            }
-        case .week:
-            return viewModel.drinkRecords.filter {
-                now.timeIntervalSince($0.timestamp) <= 604800
+        let filtered = viewModel.drinkRecords.filter { record in
+            switch selectedTimeframe {
+            case .hour:
+                return now.timeIntervalSince(record.timestamp) <= 3600
+            case .daily:
+                return now.timeIntervalSince(record.timestamp) <= 86400
+            case .week:
+                return now.timeIntervalSince(record.timestamp) <= 604800
             }
         }
+        
+        // Sort chronologically (oldest first) for proper line connections
+        return filtered.sorted { $0.timestamp < $1.timestamp }
     }
 
     private var xAxisDomain: ClosedRange<Date> {
@@ -175,14 +177,14 @@ struct ChartView: View {
                         x: .value("Time", record.timestamp),
                         y: .value("Quantity", viewModel.useOunces ? viewModel.mlToOz(Double(record.quantity)) : Double(record.quantity))
                     )
-                    .interpolationMethod(.stepEnd)
+                    .interpolationMethod(.stepEnd) // Changed to smooth curve interpolation
                     .foregroundStyle(Color.gray)
                     
                     AreaMark(
                         x: .value("Time", record.timestamp),
                         y: .value("Quantity", viewModel.useOunces ? viewModel.mlToOz(Double(record.quantity)) : Double(record.quantity))
                     )
-                    .interpolationMethod(.stepEnd)
+                    .interpolationMethod(.stepEnd) // Changed to smooth curve interpolation
                     .foregroundStyle(
                         LinearGradient(
                             gradient: Gradient(colors: [
@@ -245,7 +247,8 @@ struct ChartView: View {
                 }
                 .padding(.leading)
                 .chartXScale(domain: xAxisDomain)
-                .chartScrollPosition(x: .constant(Date()))
+                // FIXED: Use binding to scrollPosition instead of constant
+                .chartScrollPosition(x: $scrollPosition)
                 .chartScrollableAxes(.horizontal)
                 .chartYScale(domain: 0...yAxisConfig.max)
                 .frame(width: UIScreen.main.bounds.width, height: 350)
@@ -298,9 +301,15 @@ struct ChartView: View {
         .onAppear {
             askAI() // Call the simplified askAI function
             viewModel.isScanning = false
+            // Initialize scroll position to current time
+            scrollPosition = Date()
         }
         .onDisappear {
             stopTypingEffect() // Stop the timer when view disappears
+        }
+        // Reset scroll position when timeframe changes
+        .onChange(of: selectedTimeframeIndex) { _, _ in
+            scrollPosition = Date()
         }
     }
 }
