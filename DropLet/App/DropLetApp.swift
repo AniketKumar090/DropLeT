@@ -2,11 +2,11 @@ import SwiftUI
 import SwiftData
 
 @main
-struct WaterTrackerApp: App {
+struct DropLetApp: App {
  
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            DrinkRecord.self,
+           // DrinkRecords.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

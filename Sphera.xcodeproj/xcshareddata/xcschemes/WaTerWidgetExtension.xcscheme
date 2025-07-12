@@ -31,8 +31,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "8890EFCE2D15863600A4A06B"
-               BuildableName = "DropleT.app"
-               BlueprintName = "DropleT"
+               BuildableName = "DropLet.app"
+               BlueprintName = "DropLet"
                ReferencedContainer = "container:Sphera.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -72,8 +72,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8890EFCE2D15863600A4A06B"
-            BuildableName = "DropleT.app"
-            BlueprintName = "DropleT"
+            BuildableName = "DropLet.app"
+            BlueprintName = "DropLet"
             ReferencedContainer = "container:Sphera.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -108,8 +108,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8890EFCE2D15863600A4A06B"
-            BuildableName = "DropleT.app"
-            BlueprintName = "DropleT"
+            BuildableName = "DropLet.app"
+            BlueprintName = "DropLet"
             ReferencedContainer = "container:Sphera.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

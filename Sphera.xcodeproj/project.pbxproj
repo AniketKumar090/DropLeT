@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		88C1D4502D5A433A00A86A81 /* DribleT-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 88C1D44F2D5A433A00A86A81 /* DribleT-Info.plist */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		8890F0052D1588E600A4A06B /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -24,14 +20,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		8890EFCF2D15863600A4A06B /* DropleT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DropleT.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8890EFCF2D15863600A4A06B /* DropLet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DropLet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		88C1D44F2D5A433A00A86A81 /* DribleT-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "DribleT-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		8890EFD12D15863600A4A06B /* WaterTrackerr */ = {
+		8890EFD12D15863600A4A06B /* DropLet */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = WaterTrackerr;
+			path = DropLet;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -51,7 +47,7 @@
 			isa = PBXGroup;
 			children = (
 				88C1D44F2D5A433A00A86A81 /* DribleT-Info.plist */,
-				8890EFD12D15863600A4A06B /* WaterTrackerr */,
+				8890EFD12D15863600A4A06B /* DropLet */,
 				8890EFD02D15863600A4A06B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -59,7 +55,7 @@
 		8890EFD02D15863600A4A06B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8890EFCF2D15863600A4A06B /* DropleT.app */,
+				8890EFCF2D15863600A4A06B /* DropLet.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,9 +63,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8890EFCE2D15863600A4A06B /* DropleT */ = {
+		8890EFCE2D15863600A4A06B /* DropLet */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8890EFDF2D15863800A4A06B /* Build configuration list for PBXNativeTarget "DropleT" */;
+			buildConfigurationList = 8890EFDF2D15863800A4A06B /* Build configuration list for PBXNativeTarget "DropLet" */;
 			buildPhases = (
 				8890EFCB2D15863600A4A06B /* Sources */,
 				8890EFCC2D15863600A4A06B /* Frameworks */,
@@ -81,13 +77,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				8890EFD12D15863600A4A06B /* WaterTrackerr */,
+				8890EFD12D15863600A4A06B /* DropLet */,
 			);
-			name = DropleT;
+			name = DropLet;
 			packageProductDependencies = (
 			);
 			productName = WaterTrackerr;
-			productReference = 8890EFCF2D15863600A4A06B /* DropleT.app */;
+			productReference = 8890EFCF2D15863600A4A06B /* DropLet.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -121,7 +117,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8890EFCE2D15863600A4A06B /* DropleT */,
+				8890EFCE2D15863600A4A06B /* DropLet */,
 			);
 		};
 /* End PBXProject section */
@@ -131,7 +127,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				88C1D4502D5A433A00A86A81 /* DribleT-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -272,10 +267,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = WaterTrackerr/WaterTrackerr.entitlements;
+				CODE_SIGN_ENTITLEMENTS = DropLet/WaterTrackerr.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"WaterTrackerr/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"DropLet/Preview Content\"";
 				DEVELOPMENT_TEAM = B67LY5435D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -304,10 +299,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = WaterTrackerr/WaterTrackerr.entitlements;
+				CODE_SIGN_ENTITLEMENTS = DropLet/WaterTrackerr.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"WaterTrackerr/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"DropLet/Preview Content\"";
 				DEVELOPMENT_TEAM = B67LY5435D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -343,7 +338,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8890EFDF2D15863800A4A06B /* Build configuration list for PBXNativeTarget "DropleT" */ = {
+		8890EFDF2D15863800A4A06B /* Build configuration list for PBXNativeTarget "DropLet" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8890EFE02D15863800A4A06B /* Debug */,
