@@ -113,19 +113,18 @@ import UserNotificationsUI
         let calendar = Calendar.current
         let now = Date()
         
-        // Generate data for the past 7 days
-        for dayOffset in 1..<7 {
+        // Generate data for the past 6 days (excluding today)
+        for dayOffset in 1...6 {
             guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: now) else { continue }
             
             // Generate between 5-15 drinks per day
             let drinkCount = Int.random(in: 5...15)
-            var dailyTotal = 0
             
             for _ in 0..<drinkCount {
                 // Random time during waking hours (6AM-11PM)
                 let randomHour = Int.random(in: 6...23)
                 let randomMinute = Int.random(in: 0...59)
-                let drinkTime = calendar.date(bySettingHour: randomHour % 24, minute: randomMinute, second: 0, of: date) ?? date
+                let drinkTime = calendar.date(bySettingHour: randomHour, minute: randomMinute, second: 0, of: date) ?? date
                 
                 // Random drink type with higher probability for water
                 let drinkType: DrinkType = {
@@ -171,20 +170,14 @@ import UserNotificationsUI
                 )
                 
                 drinkRecords.append(record)
-                dailyTotal += volume
-            }
-            
-            // Update consumed if it's today
-            if dayOffset == 0 {
-                consumed = dailyTotal
             }
         }
         
-        // Sort all records by date
-        drinkRecords.sort { $0.timestamp < $1.timestamp }
+        // Sort all records by date (newest first for proper display)
+        drinkRecords.sort { $0.timestamp > $1.timestamp }
         
-        // Fill circles based on today's consumption
-        updateCirclesForToday()
+        // Don't update today's consumption or circles - let user add their own data
+        // The consumed and circles should start at 0 for today
         
         saveDrinkRecords()
     }

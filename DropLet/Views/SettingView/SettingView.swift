@@ -328,7 +328,7 @@ struct SettingView: View {
                     showConfirmationAlert = true
                     resetbuttonTapped.toggle()
                     
-                }.padding(.horizontal,8)
+                }.padding(.horizontal)
                 .sensoryFeedback(.warning, trigger: resetbuttonTapped)
                 
             }

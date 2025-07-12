@@ -17,11 +17,20 @@ struct DrinkLogSheet: View {
         let grouped = Dictionary(grouping: viewModel.drinkRecords) { record in
             calendar.startOfDay(for: record.timestamp)
         }
-        return grouped.map { (date, records) in
+        
+        // Convert to array with proper date sorting
+        let groupedArray = grouped.map { (date, records) in
             let dateFormatter = DateFormatter()
             dateFormatter.dateStyle = .medium
-            return (dateFormatter.string(from: date), records.sorted { $0.timestamp > $1.timestamp })
-        }.sorted { $0.0 > $1.0 }
+            return (date, dateFormatter.string(from: date), records.sorted { $0.timestamp > $1.timestamp })
+        }
+        
+        // Sort by actual date (newest first), not string representation
+        return groupedArray
+            .sorted { $0.0 > $1.0 } // Sort by Date object, not string
+            .map { (_, dateString, records) in
+                (dateString, records)
+            }
     }
     
     private func findQuickSelection(for volume: Int) -> QuickSelection? {

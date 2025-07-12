@@ -10,6 +10,7 @@ struct ChartView: View {
     @State private var responseText: String = ""
     @State private var fullResponse: String = ""
     @State private var typingIndex: Int = 0
+    @State private var typingTimer: Timer? // Store the timer reference
     
     let responses: [String] = [
         "Drinking water helps maintain hydration, which is essential for overall health. It also supports digestion and improves skin health.",
@@ -80,6 +81,9 @@ struct ChartView: View {
     
     // Simplified askAI function
     private func askAI() {
+        // Stop any existing timer first
+        stopTypingEffect()
+        
         // Randomly select a response
         fullResponse = responses.randomElement() ?? "No response available."
         
@@ -92,15 +96,22 @@ struct ChartView: View {
         viewModel.displayedText = ""
         
         // Create a timer to simulate typing
-        Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
+        typingTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
             if typingIndex < fullResponse.count {
                 viewModel.displayedText += String(fullResponse[fullResponse.index(fullResponse.startIndex, offsetBy: typingIndex)])
                 typingIndex += 1
             } else {
                 timer.invalidate() // Stop the timer when typing is complete
+                typingTimer = nil
             }
         }
     }
+    
+    private func stopTypingEffect() {
+        typingTimer?.invalidate()
+        typingTimer = nil
+    }
+    
     private var yAxisConfig: (max: Double, stride: Double) {
         if filteredRecords.isEmpty {
             if viewModel.useOunces {
@@ -287,6 +298,9 @@ struct ChartView: View {
         .onAppear {
             askAI() // Call the simplified askAI function
             viewModel.isScanning = false
+        }
+        .onDisappear {
+            stopTypingEffect() // Stop the timer when view disappears
         }
     }
 }
