@@ -1,4 +1,4 @@
-# DropLeT — A Beautiful Hydration Tracking App
+# DropLet — A Beautiful Hydration Tracking App
 
 **DropLeT** is a sleek, modern hydration tracking app built using **SwiftUI**, designed with a focus on **clean architecture**, **smooth navigation**, and **delightful animations**. It helps users track their daily water intake with features like goal setting, custom drink logging, barcode scanning for product lookup, data visualization via charts, and smart notifications.
 
