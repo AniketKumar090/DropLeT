@@ -68,7 +68,6 @@ import UserNotificationsUI
         }
     }
     
-
     var plusRotation: Double = 0
     var contentOffset: CGFloat = 0
     var keyboardOffset: CGFloat = 0
@@ -79,17 +78,38 @@ import UserNotificationsUI
     var isScanning = false
     var displayedText: String = ""
     
+    // MARK: - Midnight Reset Properties
+    private var midnightResetManager: MidnightResetManager?
+    private var lastResetDate: Date? {
+        didSet {
+            saveLastResetDate()
+        }
+    }
+    
     // MARK: - Initialization
     init() {
+        // Load data first
         self.circles = Self.loadCircles()
         self.drinkRecords = Self.loadDrinkRecords()
         self.goal = Self.loadGoal()
         self.consumed = Self.loadConsumed()
-        self.totalDrinks = self.circles.filter { $0.drinkType != nil }.count
         self.hasShownCongratulations = Self.loadHasShownCongratulations()
         self.useOunces = Self.loadUseOunces()
+        self.lastResetDate = Self.loadLastResetDate()
+        
+        // Calculate total drinks from circles
+        self.totalDrinks = self.circles.filter { $0.drinkType != nil }.count
        
         setupKeyboardObservers()
+        
+        // Remove mock data first
+        removeMockDataIfNeeded()
+        
+        // Then check for midnight reset
+        checkForMidnightReset()
+        
+        // Finally setup the midnight reset manager
+        setupMidnightReset()
                 
         let initialSelections = [
             QuickSelection(icon: "wineglass.fill", label: "Half Glass", volume: 150, isSelected: true),
@@ -102,104 +122,100 @@ import UserNotificationsUI
             QuickSelection(icon: "flame.fill", label: "Shot", volume: 30, isSelected: true)
         ]
         selectedQuickSelections = initialSelections
+    }
+    
+    // MARK: - Mock Data Removal
+    private func removeMockDataIfNeeded() {
+        // Check if we have existing data that looks like mock data
+        let hasMockData = UserDefaults.standard.bool(forKey: "hasMockData")
         
-        // Add mock data if no records exist
-        if drinkRecords.isEmpty {
-            generateMockData()
+        // If we have a lot of records from past days, it's likely mock data
+        let calendar = Calendar.current
+        let now = Date()
+        let pastDayRecords = drinkRecords.filter { !calendar.isDate($0.timestamp, inSameDayAs: now) }
+        
+        // Remove mock data if flag is set OR if we have suspiciously many past records
+        if hasMockData || pastDayRecords.count > 20 {
+            print("Removing mock data...")
+            
+            // Clear all drink records
+            drinkRecords = []
+            
+            // Reset circles completely
+            circles = Array(0..<(23 * 15)).map { CircleData(id: $0, drinkType: nil) }
+            totalDrinks = 0
+            
+            // Reset consumption for today
+            consumed = 0
+            
+            // Reset congratulations flag
+            hasShownCongratulations = false
+            
+            // Mark mock data as removed
+            UserDefaults.standard.set(false, forKey: "hasMockData")
+            
+            // Force save all changes
+            saveCircles()
+            saveDrinkRecords()
+            saveConsumed()
+            saveHasShownCongratulations()
+            
+            print("Mock data removed successfully")
         }
     }
     
-    private func generateMockData() {
+    // MARK: - Midnight Reset Management
+    private func setupMidnightReset() {
+        midnightResetManager = MidnightResetManager { [weak self] in
+            self?.performMidnightReset()
+        }
+    }
+    
+    private func checkForMidnightReset() {
         let calendar = Calendar.current
         let now = Date()
         
-        // Generate data for the past 6 days (excluding today)
-        for dayOffset in 1...6 {
-            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: now) else { continue }
-            
-            // Generate between 5-15 drinks per day
-            let drinkCount = Int.random(in: 5...15)
-            
-            for _ in 0..<drinkCount {
-                // Random time during waking hours (6AM-11PM)
-                let randomHour = Int.random(in: 6...23)
-                let randomMinute = Int.random(in: 0...59)
-                let drinkTime = calendar.date(bySettingHour: randomHour, minute: randomMinute, second: 0, of: date) ?? date
-                
-                // Random drink type with higher probability for water
-                let drinkType: DrinkType = {
-                    let rand = Int.random(in: 1...10)
-                    switch rand {
-                    case 1...7: return .water
-                    case 8: return .tea
-                    case 9: return .coffee
-                    default: return .soda
-                    }
-                }()
-                
-                // Random volume (common sizes with different probabilities)
-                let volume: Int = {
-                    let options = [
-                        (volume: 50, weight: 1),   // Small sip
-                        (volume: 100, weight: 2),  // Medium sip
-                        (volume: 150, weight: 3),  // Half glass
-                        (volume: 200, weight: 4),  // Cup
-                        (volume: 250, weight: 5),  // Glass
-                        (volume: 350, weight: 3),  // Large glass
-                        (volume: 500, weight: 2)   // Bottle
-                    ]
-                    
-                    let totalWeight = options.reduce(0) { $0 + $1.weight }
-                    let random = Int.random(in: 1...totalWeight)
-                    var runningSum = 0
-                    
-                    for option in options {
-                        runningSum += option.weight
-                        if random <= runningSum {
-                            return option.volume
-                        }
-                    }
-                    return 200
-                }()
-                
-                let record = DrinkRecords(
-                    id: UUID(),
-                    timestamp: drinkTime,
-                    drinkType: drinkType,
-                    quantity: volume
-                )
-                
-                drinkRecords.append(record)
+        // Check if we need to reset based on the last reset date
+        if let lastReset = lastResetDate {
+            if !calendar.isDate(lastReset, inSameDayAs: now) {
+                // It's a new day, perform reset
+                performMidnightReset()
             }
+        } else {
+            // First time running, set today as the reset date
+            lastResetDate = now
         }
-        
-        // Sort all records by date (newest first for proper display)
-        drinkRecords.sort { $0.timestamp > $1.timestamp }
-        
-        // Don't update today's consumption or circles - let user add their own data
-        // The consumed and circles should start at 0 for today
-        
-        saveDrinkRecords()
     }
     
-    private func updateCirclesForToday() {
-        let calendar = Calendar.current
+    private func performMidnightReset() {
+        print("Performing midnight reset...")
+        
+        
         let now = Date()
-        guard let today = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: now) else { return }
         
-        let todayRecords = drinkRecords.filter { calendar.isDate($0.timestamp, inSameDayAs: today) }
-        let todayTotal = todayRecords.reduce(0) { $0 + $1.quantity }
+        // Only reset today's data, preserve historical records
+        // Reset consumed volume to 0
+        consumed = 0
         
-        let circlesToFill = Int(Double(23 * 15) * (Double(todayTotal) / Double(goal)))
+        // Reset circles completely
+        circles = Array(0..<(23 * 15)).map { CircleData(id: $0, drinkType: nil) }
+        totalDrinks = 0
         
-        var updatedCircles = circles
-        for i in 0..<min(circlesToFill, updatedCircles.count) {
-            updatedCircles[i].drinkType = .water
-        }
-        circles = updatedCircles
-        totalDrinks = circlesToFill
+        // Reset congratulations flag
+        hasShownCongratulations = false
+        
+        // Update last reset date
+        lastResetDate = now
+        
+        // Force save all changes immediately
+        saveCircles()
+        saveConsumed()
+        saveHasShownCongratulations()
+        saveLastResetDate()
+        
+        print("Midnight reset completed - consumed: \(consumed), totalDrinks: \(totalDrinks)")
     }
-                                
+    
     // MARK: - Persistence Methods
     private func saveCircles() {
         saveQueue.async {
@@ -273,6 +289,19 @@ import UserNotificationsUI
     private static func loadUseOunces() -> Bool {
         return UserDefaults.standard.bool(forKey: "useOunces")
     }
+    
+    private func saveLastResetDate() {
+        saveQueue.async {
+            if let date = self.lastResetDate {
+                UserDefaults.standard.set(date, forKey: "lastResetDate")
+            }
+        }
+    }
+    
+    private static func loadLastResetDate() -> Date? {
+        let timestamp = UserDefaults.standard.object(forKey: "lastResetDate") as? Date
+        return timestamp
+    }
 
     // MARK: - Helper Methods
     func mlToOz(_ ml: Double) -> Double {
@@ -322,8 +351,12 @@ import UserNotificationsUI
         consumed = 0
         hasShownCongratulations = false
         useOunces = false
+        lastResetDate = nil
 
         UserDefaults.standard.removeObject(forKey: "hasShownCongratulations")
+        UserDefaults.standard.removeObject(forKey: "lastResetDate")
+        UserDefaults.standard.removeObject(forKey: "hasMockData")
+        
         saveDrinkRecords()
         saveCircles()
         saveGoal()
@@ -342,17 +375,36 @@ import UserNotificationsUI
         ]
     }
 
-    // MARK: - Midnight Reset
-    func resetAtMidnight() {
-        // Reset consumed volume to 0
+    // MARK: - Public Methods for Testing/Debugging
+    func forceReset() {
+        print("Force resetting all data...")
+        
+        // Clear everything
+        drinkRecords = []
+        circles = Array(0..<(23 * 15)).map { CircleData(id: $0, drinkType: nil) }
+        totalDrinks = 0
         consumed = 0
-        var updatedCircles = circles
-        for i in updatedCircles.indices {
-            updatedCircles[i].drinkType = nil
-        }
-        circles = updatedCircles
         hasShownCongratulations = false
-        print("Resetting data at midnight...")
+        lastResetDate = Date()
+        
+        // Clear UserDefaults
+        UserDefaults.standard.removeObject(forKey: "hasMockData")
+        UserDefaults.standard.removeObject(forKey: "hasShownCongratulations")
+        
+        // Force save everything
+        saveCircles()
+        saveDrinkRecords()
+        saveConsumed()
+        saveHasShownCongratulations()
+        saveLastResetDate()
+        
+        print("Force reset completed")
+    }
+    
+    // MARK: - Deprecated Methods (kept for backward compatibility)
+    @available(*, deprecated, message: "Use performMidnightReset() instead")
+    func resetAtMidnight() {
+        performMidnightReset()
     }
 
     // MARK: - Keyboard Observers
@@ -392,6 +444,6 @@ import UserNotificationsUI
 
     deinit {
         removeKeyboardObservers()
+        midnightResetManager = nil
     }
 }
-

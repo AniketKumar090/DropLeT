@@ -1,13 +1,12 @@
-import Combine
 import Foundation
-import SwiftUI
-import UserNotifications
-import UserNotificationsUI
+import Combine
 
 class MidnightResetManager: ObservableObject {
     private var resetTimer: Timer?
-
-    init() {
+    private let resetCallback: () -> Void
+    
+    init(resetCallback: @escaping () -> Void) {
+        self.resetCallback = resetCallback
         scheduleReset()
     }
 
@@ -15,32 +14,54 @@ class MidnightResetManager: ObservableObject {
         resetTimer?.invalidate()
     }
 
-    func scheduleReset() {
+    private func scheduleReset() {
         // Invalidate any existing timer to avoid duplicates
         resetTimer?.invalidate()
 
-        // Calculate the time until the next 04:30
+        // Calculate the time until midnight (00:00)
         let calendar = Calendar.current
         let now = Date()
-        var components = DateComponents()
-        components.hour = 0
-        components.minute = 0
-        components.second = 0
-
-        guard let nextResetTime = calendar.nextDate(after: now, matching: components, matchingPolicy: .nextTime) else { return }
-        let timeUntilReset = nextResetTime.timeIntervalSince(now)
-
-        // Schedule the timer to fire at 04:30
-        resetTimer = Timer.scheduledTimer(withTimeInterval: timeUntilReset, repeats: false) { _ in
-            self.resetAt0()
-            // Reschedule for the next day
-            self.scheduleReset()
+        
+        // Get the start of tomorrow
+        guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: now),
+              let startOfTomorrow = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: tomorrow) else {
+            print("Failed to calculate next midnight")
+            return
+        }
+        
+        let timeUntilMidnight = startOfTomorrow.timeIntervalSince(now)
+        
+        print("Next midnight reset scheduled in \(timeUntilMidnight) seconds")
+        
+        // Schedule the timer to fire at midnight
+        resetTimer = Timer.scheduledTimer(withTimeInterval: timeUntilMidnight, repeats: false) { [weak self] _ in
+            self?.performReset()
         }
     }
-
-    func resetAt0() {
-        print("Resetting data..")
-        // Call your reset logic here
-        DrinkViewModel().resetAtMidnight()
+    
+    private func performReset() {
+        print("Midnight reset triggered at \(Date())")
+        resetCallback()
+        
+        // Reschedule for the next midnight
+        scheduleReset()
+    }
+    
+    // Public method to manually trigger reset (for testing)
+    func triggerReset() {
+        performReset()
+    }
+    
+    // Method to get time until next reset (for UI display if needed)
+    func timeUntilNextReset() -> TimeInterval {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: now),
+              let startOfTomorrow = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: tomorrow) else {
+            return 0
+        }
+        
+        return startOfTomorrow.timeIntervalSince(now)
     }
 }

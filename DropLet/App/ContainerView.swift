@@ -3,15 +3,15 @@ import SwiftUI
 struct ContainerView: View {
     @State private var isSplashScreenViewPresented = true
     @StateObject private var notificationManager = NotificationManager()
-    @StateObject private var midnightResetManager = MidnightResetManager()
+    @StateObject private var drinkViewModel = DrinkViewModel()
     
     var body: some View {
-        if !isSplashScreenViewPresented{
-            Home(viewModel: DrinkViewModel()).environmentObject(midnightResetManager)
+        if !isSplashScreenViewPresented {
+            Home(viewModel: drinkViewModel)
                 .onAppear {
                     notificationManager.scheduleNotifications()
                 }
-        }else {
+        } else {
             SplashScreenView(isPresented: $isSplashScreenViewPresented)
         }
     }
